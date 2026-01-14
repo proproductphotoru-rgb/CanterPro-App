@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CanterPro Ultra</title>
+
+<meta name="theme-color" content="#2196f3">
+<link rel="manifest" href="manifest.json">
+
+<style>
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Roboto, Arial;
+    background: #f2f2f2;
+}
+
+header {
+    background: #2196f3;
+    color: white;
+    padding: 16px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.container {
+    padding: 16px;
+}
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+label {
+    font-size: 14px;
+    color: #555;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.buttons {
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    background: #2196f3;
+    color: white;
+}
+
+button.active {
+    background: #1976d2;
+}
+
+button.calc {
+    background: #2e7d32;
+    margin-top: 10px;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.result {
+    white-space: pre-line;
+    font-size: 15px;
+}
+
+.copy {
+    background: #455a64;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>CanterPro Ultra</header>
+
+<div class="container">
+
+<div class="card">
+    <label>Тип ставки</label>
+    <div class="buttons">
+        <button onclick="setRate('fix')" id="fix" class="active">Фикс</button>
+        <button onclick="setRate('km')" id="km">₽/км</button>
+        <button onclick="setRate('hour')" id="hour">Часы</button>
+    </div>
+</div>
+
+<div class="card">
+    <label>Ставка</label>
+    <input id="rate" type="number" placeholder="₽ или ₽ за км">
+
+    <label>Часы работы</label>
+    <input id="hours" type="number" placeholder="Для часовой ставки">
+
+    <label>Дистанция (км)</label>
+    <input id="dist" type="number">
+
+    <label>Тоннаж (т)</label>
+    <input id="tonnage" type="number">
+
+    <label>Цена топлива (₽)</label>
+    <input id="fuel">
+
+    <div class="checkbox">
+        <input type="checkbox" id="refrig">
+        <label>Рефрижератор (+15%)</label>
+    </div>
+
+    <button class="calc" onclick="calc()">РАССЧИТАТЬ</button>
+</div>
+
+<div class="card" id="report" style="display:none">
+    <div class="result" id="resultText"></div>
+    <button class="copy" onclick="copy()">Скопировать клиенту</button>
+</div>
+
+</div>
+
+<script>
+let rateType = "fix";
+
+const BASE_FUEL_100 = 12;
+const AMORT = 10;
+const TAX = 0.06;
+const HOUR_RATE = 1500;
+const REF_COEF = 1.15;
+
+function setRate(t) {
+    rateType = t;
+    ["fix","km","hour"].forEach(id => {
+        document.getElementById(id).classList.remove("active");
+    });
+    document.getElementById(t).classList.add("active");
+}
+
+function tonnageCoef(t) {
+    if (t <= 1) return 1;
+    if (t <= 3) return 1.05;
+    return 1.15;
+}
+
+function calc() {
+    const r = +rate.value || 0;
+    const h = +hours.value || 0;
+    const d = +dist.value || 0;
+    const t = +tonnage.value || 0;
+    const f = +fuel.value || 0;
+    const refrig = document.getElementById("refrig").checked;
+
+    if (d <= 0) {
+        alert("Дистанция должна быть больше 0");
+        return;
+    }
+
+    let income = 0;
+    if (rateType === "fix") income = r;
+    else if (rateType === "km") income = d * r;
+    else income = Math.max(0, h - 1) * HOUR_RATE;
+
+    let fuel100 = BASE_FUEL_100 * tonnageCoef(t);
+    if (refrig) fuel100 *= REF_COEF;
+
+    let fuelCost = d * fuel100 / 100 * f;
+    let amort = d * AMORT;
+    let gross = income - fuelCost - amort;
+    let tax = gross > 0 ? gross * TAX : 0;
+    let profit = gross - tax;
+    let margin = income > 0 ? profit / income * 100 : 0;
+
+    const text =
+`🚛 РАСЧЁТ РЕЙСА
+
+Пробег: ${d} км
+Тоннаж: ${t} т
+Рефрижератор: ${refrig ? "Да" : "Нет"}
+
+Доход: ${income.toFixed(0)} ₽
+Топливо: -${fuelCost.toFixed(0)} ₽
+Амортизация: -${amort.toFixed(0)} ₽
+Налог: -${tax.toFixed(0)} ₽
+
+Чистая прибыль: ${profit.toFixed(0)} ₽
+Маржа: ${margin.toFixed(1)} %
+Расход: ${fuel100.toFixed(1)} л / 100 км`;
+
+    resultText.textContent = text;
+    report.style.display = "block";
+}
+
+function copy() {
+    navigator.clipboard.writeText(resultText.textContent);
+    alert("Скопировано");
+}
+</script>
+
+</body>
+  </html>
