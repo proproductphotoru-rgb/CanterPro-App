@@ -1,72 +1,75 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CanterPro Ultra</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CanterPro Ultra</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+}
 
-    .screen {
-      display: none;
-      padding: 16px;
-    }
+.screen {
+  display: none;
+  padding: 16px;
+}
 
-    .screen.active {
-      display: block;
-    }
+.screen.active {
+  display: block;
+}
 
-    h1, h2 {
-      margin-top: 0;
-    }
+h1, h2, h3 {
+  margin-top: 0;
+}
 
-    button {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      margin-top: 12px;
-      border: none;
-      border-radius: 6px;
-      background: #1976d2;
-      color: white;
-    }
+.card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
 
-    button.red {
-      background: #c62828;
-    }
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 6px;
+  background: #1976d2;
+  color: white;
+}
 
-    input {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      margin-top: 8px;
-      box-sizing: border-box;
-    }
+button.red {
+  background: #c62828;
+}
 
-    .card {
-      background: white;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-    }
+button.gray {
+  background: #555;
+}
 
-    .timer {
-      font-size: 28px;
-      text-align: center;
-      margin-top: 12px;
-    }
+input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 8px;
+}
 
-    pre {
-      background: #eee;
-      padding: 12px;
-      white-space: pre-wrap;
-    }
-  </style>
+.timer {
+  font-size: 28px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+pre {
+  background: #eee;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+</style>
 </head>
 
 <body>
@@ -74,7 +77,6 @@
 <!-- ЭКРАН 1: РАБОЧИЙ ДЕНЬ -->
 <div id="screen-day" class="screen active">
   <h1>CanterPro Ultra</h1>
-
   <div class="card">
     <h2>Рабочий день</h2>
     <button onclick="startDay()">Начать рабочий день</button>
@@ -82,110 +84,140 @@
   </div>
 </div>
 
-<!-- ЭКРАН 2: ВЫБОР ТИПА -->
+<!-- ЭКРАН 2: ВЫБОР -->
 <div id="screen-type" class="screen">
-  <h2>Тип заказа</h2>
-
+  <h2>Новый заказ</h2>
   <div class="card">
-    <button onclick="open5plus1()">До базы • Схема 5+1</button>
+    <button onclick="openOrder()">До базы • Схема 5+1</button>
   </div>
 </div>
 
-<!-- ЭКРАН 3: ЗАКАЗ 5+1 -->
+<!-- ЭКРАН 3: ЗАКАЗ -->
 <div id="screen-order" class="screen">
-  <h2>Заказ • Схема 5+1</h2>
+  <h2>Заказ • 5+1</h2>
 
   <div class="card">
     <label>Ставка (₽ / час)</label>
     <input id="rate" type="number" placeholder="1000">
-
     <button onclick="startOrder()">▶ Начать заказ</button>
   </div>
 
   <div id="timerBlock" class="card" style="display:none;">
     <h3>Прошло времени</h3>
     <div id="timer" class="timer">00:00:00</div>
-    <button class="red" onclick="finishOrder()">⏹ Закончить заказ</button>
+    <button class="red" onclick="finishOrder()">⏹ Завершить заказ</button>
   </div>
 
   <div id="resultBlock" class="card" style="display:none;">
-    <h3>Отчёт</h3>
+    <h3>Краткий отчёт</h3>
     <pre id="report"></pre>
+
+    <label>Фото ТТН</label>
+    <input id="photos" type="file" accept="image/*" multiple>
+
+    <button class="gray" onclick="shareReport()">📤 Отправить диспетчеру</button>
+    <button onclick="newOrder()">➕ Новый заказ</button>
   </div>
 </div>
 
 <script>
-  function show(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startDay() {
+  const now = new Date();
+  document.getElementById('dayInfo').textContent =
+    'Рабочий день начат: ' + now.toLocaleTimeString();
+  show('screen-type');
+}
+
+function openOrder() {
+  show('screen-order');
+}
+
+let startTime = null;
+let interval = null;
+let lastReportText = '';
+
+function startOrder() {
+  const rate = document.getElementById('rate').value;
+  if (!rate || rate <= 0) {
+    alert('Введите ставку');
+    return;
   }
 
-  function startDay() {
-    const now = new Date();
-    document.getElementById('dayInfo').textContent =
-      'Рабочий день начат: ' + now.toLocaleTimeString();
-    show('screen-type');
-  }
+  startTime = Date.now();
+  document.getElementById('timerBlock').style.display = 'block';
+  document.getElementById('resultBlock').style.display = 'none';
 
-  function open5plus1() {
-    show('screen-order');
-  }
+  interval = setInterval(updateTimer, 1000);
+}
 
-  let startTime = null;
-  let interval = null;
+function updateTimer() {
+  const diff = Date.now() - startTime;
+  const sec = Math.floor(diff / 1000);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
 
-  function startOrder() {
-    const rate = document.getElementById('rate').value;
-    if (!rate || rate <= 0) {
-      alert('Введите ставку');
-      return;
-    }
+  document.getElementById('timer').textContent =
+    String(h).padStart(2,'0') + ':' +
+    String(m).padStart(2,'0') + ':' +
+    String(s).padStart(2,'0');
+}
 
-    startTime = Date.now();
-    document.getElementById('timerBlock').style.display = 'block';
-    document.getElementById('resultBlock').style.display = 'none';
+function finishOrder() {
+  clearInterval(interval);
 
-    interval = setInterval(updateTimer, 1000);
-  }
+  const rate = Number(document.getElementById('rate').value);
+  const diff = Date.now() - startTime;
+  const minutes = Math.ceil(diff / 60000);
 
-  function updateTimer() {
-    const diff = Date.now() - startTime;
-    const sec = Math.floor(diff / 1000);
+  let hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (rest > 15) hours += 1;
 
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
+  const paidHours = Math.max(6, hours);
+  const sum = paidHours * rate;
 
-    document.getElementById('timer').textContent =
-      String(h).padStart(2,'0') + ':' +
-      String(m).padStart(2,'0') + ':' +
-      String(s).padStart(2,'0');
-  }
-
-  function finishOrder() {
-    clearInterval(interval);
-
-    const rate = Number(document.getElementById('rate').value);
-    const diff = Date.now() - startTime;
-    const minutes = Math.ceil(diff / 60000);
-
-    let hours = Math.floor(minutes / 60);
-    const rest = minutes % 60;
-    if (rest > 15) hours += 1;
-
-    const paidHours = Math.max(6, hours);
-    const sum = paidHours * rate;
-
-    document.getElementById('report').textContent =
-`Схема: 5+1
-Фактическое время: ${hours} ч
-Оплачено часов: ${paidHours}
+  lastReportText =
+`Заказ выполнен
+Схема: 5+1
+Фактически: ${hours} ч
+Оплачено: ${paidHours} ч
 Ставка: ${rate} ₽ / час
+Итого: ${sum} ₽`;
 
-ИТОГО: ${sum} ₽`;
+  document.getElementById('report').textContent = lastReportText;
+  document.getElementById('resultBlock').style.display = 'block';
+}
 
-    document.getElementById('resultBlock').style.display = 'block';
+async function shareReport() {
+  const files = document.getElementById('photos').files;
+  const shareData = {
+    text: lastReportText,
+    files: files.length ? Array.from(files) : undefined
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (e) {
+      alert('Не удалось отправить');
+    }
+  } else {
+    alert('Поделиться не поддерживается');
   }
+}
+
+function newOrder() {
+  document.getElementById('timerBlock').style.display = 'none';
+  document.getElementById('resultBlock').style.display = 'none';
+  document.getElementById('rate').value = '';
+  show('screen-type');
+}
 </script>
 
 </body>
