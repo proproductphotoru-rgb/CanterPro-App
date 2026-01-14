@@ -6,219 +6,167 @@
 <title>CanterPro Ultra</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-}
-
-.screen {
-  display: none;
-  padding: 16px;
-}
-
-.screen.active {
-  display: block;
-}
-
-h1, h2, h3 {
-  margin-top: 0;
-}
-
-.card {
-  background: #fff;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  margin-top: 12px;
-  border: none;
-  border-radius: 6px;
-  background: #1976d2;
-  color: white;
-}
-
-button.red {
-  background: #c62828;
-}
-
-button.gray {
-  background: #555;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  margin-top: 8px;
-}
-
-.timer {
-  font-size: 28px;
-  text-align: center;
-  margin-top: 12px;
-}
-
-pre {
-  background: #eee;
-  padding: 12px;
-  white-space: pre-wrap;
-}
+body { margin:0;font-family:Arial;background:#f2f2f2; }
+.screen { display:none;padding:16px; }
+.screen.active { display:block; }
+.card { background:#fff;padding:16px;border-radius:8px;margin-bottom:16px; }
+button { width:100%;padding:14px;font-size:16px;margin-top:12px;border:none;border-radius:6px;background:#1976d2;color:#fff; }
+button.red{background:#c62828;} button.gray{background:#555;}
+input,textarea,select{width:100%;padding:12px;font-size:16px;margin-top:8px;}
+.timer{font-size:28px;text-align:center;margin-top:12px;}
+pre{background:#eee;padding:12px;white-space:pre-wrap;}
 </style>
 </head>
 
 <body>
 
-<!-- ЭКРАН 1: РАБОЧИЙ ДЕНЬ -->
 <div id="screen-day" class="screen active">
   <h1>CanterPro Ultra</h1>
   <div class="card">
-    <h2>Рабочий день</h2>
+    <button onclick="show('screen-settings')">⚙ Настройки</button>
+  </div>
+  <div class="card">
     <button onclick="startDay()">Начать рабочий день</button>
     <p id="dayInfo"></p>
   </div>
 </div>
 
-<!-- ЭКРАН 2: ВЫБОР -->
-<div id="screen-type" class="screen">
-  <h2>Новый заказ</h2>
+<div id="screen-settings" class="screen">
+  <h2>Настройки</h2>
   <div class="card">
-    <button onclick="openOrder()">До базы • Схема 5+1</button>
+    <label>Реквизиты для оплаты</label>
+    <textarea id="payDetails" rows="5"></textarea>
+
+    <label>Тестовый режим</label>
+    <select id="timeMultiplier">
+      <option value="1">Реальное время</option>
+      <option value="10">x10 (1 мин = 10 мин)</option>
+      <option value="30">x30</option>
+      <option value="60">x60</option>
+    </select>
+
+    <button onclick="saveSettings()">💾 Сохранить</button>
+    <button class="gray" onclick="show('screen-day')">← Назад</button>
   </div>
 </div>
 
-<!-- ЭКРАН 3: ЗАКАЗ -->
+<div id="screen-type" class="screen">
+  <h2>Новый заказ</h2>
+  <div class="card">
+    <button onclick="openOrder()">До базы • 5+1</button>
+  </div>
+</div>
+
 <div id="screen-order" class="screen">
   <h2>Заказ • 5+1</h2>
-
   <div class="card">
-    <label>Ставка (₽ / час)</label>
-    <input id="rate" type="number" placeholder="1000">
+    <input id="rate" type="number" placeholder="Ставка ₽/час">
     <button onclick="startOrder()">▶ Начать заказ</button>
   </div>
 
   <div id="timerBlock" class="card" style="display:none;">
-    <h3>Прошло времени</h3>
     <div id="timer" class="timer">00:00:00</div>
     <button class="red" onclick="finishOrder()">⏹ Завершить заказ</button>
   </div>
 
   <div id="resultBlock" class="card" style="display:none;">
-    <h3>Краткий отчёт</h3>
     <pre id="report"></pre>
-
-    <label>Фото ТТН</label>
     <input id="photos" type="file" accept="image/*" multiple>
-
     <button class="gray" onclick="shareReport()">📤 Отправить диспетчеру</button>
     <button onclick="newOrder()">➕ Новый заказ</button>
   </div>
 </div>
 
 <script>
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+let multiplier = Number(localStorage.getItem('multiplier') || 1);
+document.getElementById('timeMultiplier').value = multiplier;
+document.getElementById('payDetails').value = localStorage.getItem('payDetails')||'';
+
+function saveSettings(){
+  multiplier = Number(document.getElementById('timeMultiplier').value);
+  localStorage.setItem('multiplier', multiplier);
+  localStorage.setItem('payDetails', document.getElementById('payDetails').value);
+  alert('Сохранено');
+  show('screen-day');
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-function startDay() {
-  const now = new Date();
-  document.getElementById('dayInfo').textContent =
-    'Рабочий день начат: ' + now.toLocaleTimeString();
+function startDay(){
+  document.getElementById('dayInfo').textContent='Начато: '+new Date().toLocaleTimeString();
   show('screen-type');
 }
 
-function openOrder() {
-  show('screen-order');
+function openOrder(){ show('screen-order'); }
+
+let realStart=null, interval=null, lastReport='';
+
+function startOrder(){
+  if(!rate.value) return alert('Введите ставку');
+  realStart=Date.now();
+  timerBlock.style.display='block';
+  resultBlock.style.display='none';
+  interval=setInterval(updateTimer,1000);
 }
 
-let startTime = null;
-let interval = null;
-let lastReportText = '';
+function updateTimer(){
+  const realDiff=Date.now()-realStart;
+  const testDiff=realDiff*multiplier;
+  const sec=Math.floor(testDiff/1000);
+  timer.textContent=
+    String(Math.floor(sec/3600)).padStart(2,'0')+':' +
+    String(Math.floor(sec%3600/60)).padStart(2,'0')+':' +
+    String(sec%60).padStart(2,'0');
+}
 
-function startOrder() {
-  const rate = document.getElementById('rate').value;
-  if (!rate || rate <= 0) {
-    alert('Введите ставку');
-    return;
+function finishOrder(){
+  clearInterval(interval);
+  const rateVal=Number(rate.value);
+  const realEnd=new Date();
+  const testMinutes=Math.ceil((realEnd-realStart)*multiplier/60000);
+
+  let paid=6, roundTxt='';
+  if(testMinutes>360){
+    const extra=testMinutes-360;
+    let extraH=Math.floor(extra/60);
+    if(extra%60>15) extraH++;
+    paid+=extraH;
+    if(extra%60>15){
+      roundTxt=` (округлено до ${String(realEnd.getHours()+1).padStart(2,'0')}:00)`;
+    }
   }
 
-  startTime = Date.now();
-  document.getElementById('timerBlock').style.display = 'block';
-  document.getElementById('resultBlock').style.display = 'none';
-
-  interval = setInterval(updateTimer, 1000);
-}
-
-function updateTimer() {
-  const diff = Date.now() - startTime;
-  const sec = Math.floor(diff / 1000);
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-
-  document.getElementById('timer').textContent =
-    String(h).padStart(2,'0') + ':' +
-    String(m).padStart(2,'0') + ':' +
-    String(s).padStart(2,'0');
-}
-
-function finishOrder() {
-  clearInterval(interval);
-
-  const rate = Number(document.getElementById('rate').value);
-  const diff = Date.now() - startTime;
-  const minutes = Math.ceil(diff / 60000);
-
-  let hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  if (rest > 15) hours += 1;
-
-  const paidHours = Math.max(6, hours);
-  const sum = paidHours * rate;
-
-  lastReportText =
+  lastReport=
 `Заказ выполнен
 Схема: 5+1
-Фактически: ${hours} ч
-Оплачено: ${paidHours} ч
-Ставка: ${rate} ₽ / час
-Итого: ${sum} ₽`;
+Окончание: ${realEnd.toLocaleTimeString().slice(0,5)}${roundTxt}
+К оплате за: ${paid} ч
+Ставка: ${rateVal} ₽/ч
+Итого к оплате: ${paid*rateVal} ₽
 
-  document.getElementById('report').textContent = lastReportText;
-  document.getElementById('resultBlock').style.display = 'block';
+Реквизиты:
+${localStorage.getItem('payDetails')||'—'}`;
+
+  report.textContent=lastReport;
+  resultBlock.style.display='block';
 }
 
-async function shareReport() {
-  const files = document.getElementById('photos').files;
-  const shareData = {
-    text: lastReportText,
-    files: files.length ? Array.from(files) : undefined
-  };
-
-  if (navigator.share) {
-    try {
-      await navigator.share(shareData);
-    } catch (e) {
-      alert('Не удалось отправить');
-    }
-  } else {
-    alert('Поделиться не поддерживается');
-  }
+async function shareReport(){
+  const files=photos.files.length?[...photos.files]:undefined;
+  await navigator.share({text:lastReport,files});
 }
 
-function newOrder() {
-  document.getElementById('timerBlock').style.display = 'none';
-  document.getElementById('resultBlock').style.display = 'none';
-  document.getElementById('rate').value = '';
+function newOrder(){
+  timerBlock.style.display='none';
+  resultBlock.style.display='none';
+  rate.value='';
+  photos.value='';
   show('screen-type');
 }
 </script>
 
 </body>
-</html>
+  </html>
