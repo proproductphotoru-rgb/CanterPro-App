@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport"
   content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>CanterPro Ultra</title>
 
 <style>
@@ -14,34 +15,255 @@ html, body {
   background: #f2f2f2;
   overflow: hidden;
 }
-.app { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.screen { display:none; padding:16px; min-height:100%; box-sizing:border-box; }
-.screen.active { display:block; }
-.card { background:#fff; padding:16px; border-radius:10px; margin-bottom:16px; }
-button { width:100%; padding:14px; font-size:16px; margin-top:12px;
-  border:none; border-radius:8px; background:#1976d2; color:#fff; }
-button.red { background:#c62828; } button.gray { background:#555; }
-input, textarea, select { width:100%; padding:14px; font-size:18px; margin-top:8px; }
-.timer { font-size:32px; text-align:center; }
-pre { background:#eee; padding:12px; white-space:pre-wrap; }
-.hidden { display:none; }
+
+.app {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen {
+  display: none;
+  padding: 16px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.screen.active { display: block; }
+
+.card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #1976d2;
+  color: #fff;
+}
+
+button.red { background: #c62828; }
+button.gray { background: #555; }
+
+input, textarea, select {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+
+.timer {
+  font-size: 32px;
+  text-align: center;
+}
+
+pre {
+  background: #eee;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+.hidden { display: none; }
 </style>
 </head>
 
 <body>
 <div class="app">
 
-<!-- (экраны БЕЗ ИЗМЕНЕНИЙ — опущены ради краткости) -->
+<!-- ЭКРАН: РАБОЧИЙ ДЕНЬ -->
+<div id="screen-day" class="screen active">
+  <h1>CanterPro Ultra</h1>
+
+  <div class="card">
+    <button onclick="show('screen-settings')">⚙ Настройки</button>
+  </div>
+
+  <div class="card">
+    <button onclick="startDay()">Начать рабочий день</button>
+    <p id="dayInfo"></p>
+  </div>
+</div>
+
+<!-- ЭКРАН: НАСТРОЙКИ -->
+<div id="screen-settings" class="screen">
+  <h2>Настройки</h2>
+
+  <div class="card">
+    <label>Реквизиты для оплаты</label>
+    <textarea id="payDetails" rows="4"
+      placeholder="ИП Иванов И.И.
+Банк
+Телефон"></textarea>
+
+    <label>Ускорение времени (для теста)</label>
+    <select id="timeMultiplier">
+      <option value="1">Реальное время</option>
+      <option value="10">x10</option>
+      <option value="30">x30</option>
+      <option value="60">x60</option>
+    </select>
+
+    <button onclick="saveSettings()">💾 Сохранить</button>
+    <button class="gray" onclick="show('screen-day')">← Назад</button>
+  </div>
+</div>
+
+<!-- ЭКРАН: ВЫБОР ЗАКАЗА -->
+<div id="screen-type" class="screen">
+  <h2>Новый заказ</h2>
+
+  <div class="card">
+    <button onclick="openOrder()">Схема 5+1</button>
+  </div>
+</div>
+
+<!-- ЭКРАН: ЗАКАЗ -->
+<div id="screen-order" class="screen">
+  <h2>Заказ • 5+1</h2>
+
+  <!-- СТАРТ -->
+  <div id="startBlock" class="card">
+    <label>Ставка ₽ / час</label>
+    <input id="rate" type="number" inputmode="numeric">
+    <button onclick="startOrder()">▶ Начать заказ</button>
+  </div>
+
+  <!-- ТАЙМЕР -->
+  <div id="timerBlock" class="card hidden">
+    <div id="timer" class="timer">00:00:00</div>
+    <button class="red" onclick="finishOrder()">⏹ Завершить заказ</button>
+  </div>
+
+  <!-- МАРШРУТ -->
+  <div id="routeBlock" class="card hidden">
+    <h3>Маршрут</h3>
+    <button onclick="openNavigator()">🗺 Открыть Яндекс Навигатор</button>
+    <label>Километраж маршрута (км)</label>
+    <input id="distance" type="number" inputmode="decimal">
+  </div>
+
+  <!-- ОТЧЁТ -->
+  <div id="resultBlock" class="card hidden">
+    <h3>Краткий отчёт</h3>
+    <pre id="report"></pre>
+
+    <label>Фото ТТН</label>
+    <input id="photos" type="file" accept="image/*" multiple>
+
+    <button class="gray" onclick="shareReport()">📤 Отправить диспетчеру</button>
+    <button onclick="newOrder()">➕ Новый заказ</button>
+  </div>
+</div>
 
 </div>
 
 <script>
-/* ВЕСЬ КОД БЕЗ ИЗМЕНЕНИЙ,
-   КРОМЕ ЭТОЙ ФУНКЦИИ */
+let multiplier = Number(localStorage.getItem('multiplier') || 1);
+let realStart = null;
+let interval = null;
+let lastReport = '';
+
+payDetails.value = localStorage.getItem('payDetails') || '';
+timeMultiplier.value = multiplier;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function saveSettings() {
+  multiplier = Number(timeMultiplier.value);
+  localStorage.setItem('multiplier', multiplier);
+  localStorage.setItem('payDetails', payDetails.value);
+  alert('Сохранено');
+  show('screen-day');
+}
+
+function startDay() {
+  dayInfo.textContent = 'Рабочий день начат: ' + new Date().toLocaleTimeString();
+  show('screen-type');
+}
+
+function openOrder() {
+  show('screen-order');
+}
+
+function startOrder() {
+  if (!rate.value) return alert('Введите ставку');
+
+  rate.blur(); // закрываем клавиатуру
+
+  startBlock.classList.add('hidden');
+  timerBlock.classList.remove('hidden');
+  routeBlock.classList.remove('hidden');
+
+  realStart = Date.now();
+  interval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  const diff = (Date.now() - realStart) * multiplier;
+  const s = Math.floor(diff / 1000);
+
+  timer.textContent =
+    String(Math.floor(s / 3600)).padStart(2, '0') + ':' +
+    String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ':' +
+    String(s % 60).padStart(2, '0');
+}
+
+function openNavigator() {
+  location.href = "yandexnavi://build_route_on_map";
+}
+
+function finishOrder() {
+  clearInterval(interval);
+
+  const end = new Date();
+  const mins = Math.ceil((end - realStart) * multiplier / 60000);
+
+  let paidHours = 6;
+  let roundText = '';
+
+  if (mins > 360) {
+    const extra = mins - 360;
+    let extraHours = Math.floor(extra / 60);
+    if (extra % 60 > 15) extraHours++;
+    paidHours += extraHours;
+
+    if (extra % 60 > 15) {
+      roundText = ` (округлено до ${String(end.getHours() + 1).padStart(2, '0')}:00)`;
+    }
+  }
+
+  lastReport =
+`Заказ выполнен
+Схема: 5+1
+
+Окончание: ${end.toLocaleTimeString().slice(0,5)}${roundText}
+
+К оплате за: ${paidHours} ч
+Ставка: ${rate.value} ₽ / час
+Итого к оплате: ${paidHours * rate.value} ₽
+
+Км маршрута: ${distance.value || '—'}
+
+Реквизиты для оплаты:
+${localStorage.getItem('payDetails') || '—'}`;
+
+  report.textContent = lastReport;
+  resultBlock.classList.remove('hidden');
+}
 
 async function shareReport() {
   try {
-    // 📄 создаём файл отчёта
     const reportBlob = new Blob([lastReport], { type: 'text/plain' });
     const reportFile = new File(
       [reportBlob],
@@ -49,14 +271,25 @@ async function shareReport() {
       { type: 'text/plain' }
     );
 
-    const photoFiles = [...photos.files];
+    const files = [reportFile, ...photos.files];
 
-    await navigator.share({
-      files: [reportFile, ...photoFiles]
-    });
+    await navigator.share({ files });
   } catch (e) {
     alert('Не удалось отправить отчёт');
   }
+}
+
+function newOrder() {
+  startBlock.classList.remove('hidden');
+  timerBlock.classList.add('hidden');
+  routeBlock.classList.add('hidden');
+  resultBlock.classList.add('hidden');
+
+  rate.value = '';
+  distance.value = '';
+  photos.value = '';
+
+  show('screen-type');
 }
 </script>
 
