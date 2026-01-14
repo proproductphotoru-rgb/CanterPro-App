@@ -1,219 +1,192 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CanterPro Ultra</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanterPro Ultra</title>
 
-<meta name="theme-color" content="#2196f3">
-<link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+    }
 
-<style>
-body {
-    margin: 0;
-    font-family: system-ui, -apple-system, Roboto, Arial;
-    background: #f2f2f2;
-}
+    .screen {
+      display: none;
+      padding: 16px;
+    }
 
-header {
-    background: #2196f3;
-    color: white;
-    padding: 16px;
-    text-align: center;
-    font-size: 20px;
-    font-weight: 600;
-}
+    .screen.active {
+      display: block;
+    }
 
-.container {
-    padding: 16px;
-}
+    h1, h2 {
+      margin-top: 0;
+    }
 
-.card {
-    background: white;
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 12px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+    }
 
-label {
-    font-size: 14px;
-    color: #555;
-}
+    button.red {
+      background: #c62828;
+    }
 
-input {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-}
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 8px;
+      box-sizing: border-box;
+    }
 
-.buttons {
-    display: flex;
-    gap: 8px;
-}
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
 
-button {
-    flex: 1;
-    padding: 14px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-    background: #2196f3;
-    color: white;
-}
+    .timer {
+      font-size: 28px;
+      text-align: center;
+      margin-top: 12px;
+    }
 
-button.active {
-    background: #1976d2;
-}
-
-button.calc {
-    background: #2e7d32;
-    margin-top: 10px;
-}
-
-.checkbox {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.result {
-    white-space: pre-line;
-    font-size: 15px;
-}
-
-.copy {
-    background: #455a64;
-    margin-top: 10px;
-}
-</style>
+    pre {
+      background: #eee;
+      padding: 12px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>CanterPro Ultra</header>
+<!-- ЭКРАН 1: РАБОЧИЙ ДЕНЬ -->
+<div id="screen-day" class="screen active">
+  <h1>CanterPro Ultra</h1>
 
-<div class="container">
-
-<div class="card">
-    <label>Тип ставки</label>
-    <div class="buttons">
-        <button onclick="setRate('fix')" id="fix" class="active">Фикс</button>
-        <button onclick="setRate('km')" id="km">₽/км</button>
-        <button onclick="setRate('hour')" id="hour">Часы</button>
-    </div>
+  <div class="card">
+    <h2>Рабочий день</h2>
+    <button onclick="startDay()">Начать рабочий день</button>
+    <p id="dayInfo"></p>
+  </div>
 </div>
 
-<div class="card">
-    <label>Ставка</label>
-    <input id="rate" type="number" placeholder="₽ или ₽ за км">
+<!-- ЭКРАН 2: ВЫБОР ТИПА -->
+<div id="screen-type" class="screen">
+  <h2>Тип заказа</h2>
 
-    <label>Часы работы</label>
-    <input id="hours" type="number" placeholder="Для часовой ставки">
-
-    <label>Дистанция (км)</label>
-    <input id="dist" type="number">
-
-    <label>Тоннаж (т)</label>
-    <input id="tonnage" type="number">
-
-    <label>Цена топлива (₽)</label>
-    <input id="fuel">
-
-    <div class="checkbox">
-        <input type="checkbox" id="refrig">
-        <label>Рефрижератор (+15%)</label>
-    </div>
-
-    <button class="calc" onclick="calc()">РАССЧИТАТЬ</button>
+  <div class="card">
+    <button onclick="open5plus1()">До базы • Схема 5+1</button>
+  </div>
 </div>
 
-<div class="card" id="report" style="display:none">
-    <div class="result" id="resultText"></div>
-    <button class="copy" onclick="copy()">Скопировать клиенту</button>
-</div>
+<!-- ЭКРАН 3: ЗАКАЗ 5+1 -->
+<div id="screen-order" class="screen">
+  <h2>Заказ • Схема 5+1</h2>
 
+  <div class="card">
+    <label>Ставка (₽ / час)</label>
+    <input id="rate" type="number" placeholder="1000">
+
+    <button onclick="startOrder()">▶ Начать заказ</button>
+  </div>
+
+  <div id="timerBlock" class="card" style="display:none;">
+    <h3>Прошло времени</h3>
+    <div id="timer" class="timer">00:00:00</div>
+    <button class="red" onclick="finishOrder()">⏹ Закончить заказ</button>
+  </div>
+
+  <div id="resultBlock" class="card" style="display:none;">
+    <h3>Отчёт</h3>
+    <pre id="report"></pre>
+  </div>
 </div>
 
 <script>
-let rateType = "fix";
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
 
-const BASE_FUEL_100 = 12;
-const AMORT = 10;
-const TAX = 0.06;
-const HOUR_RATE = 1500;
-const REF_COEF = 1.15;
+  function startDay() {
+    const now = new Date();
+    document.getElementById('dayInfo').textContent =
+      'Рабочий день начат: ' + now.toLocaleTimeString();
+    show('screen-type');
+  }
 
-function setRate(t) {
-    rateType = t;
-    ["fix","km","hour"].forEach(id => {
-        document.getElementById(id).classList.remove("active");
-    });
-    document.getElementById(t).classList.add("active");
-}
+  function open5plus1() {
+    show('screen-order');
+  }
 
-function tonnageCoef(t) {
-    if (t <= 1) return 1;
-    if (t <= 3) return 1.05;
-    return 1.15;
-}
+  let startTime = null;
+  let interval = null;
 
-function calc() {
-    const r = +rate.value || 0;
-    const h = +hours.value || 0;
-    const d = +dist.value || 0;
-    const t = +tonnage.value || 0;
-    const f = +fuel.value || 0;
-    const refrig = document.getElementById("refrig").checked;
-
-    if (d <= 0) {
-        alert("Дистанция должна быть больше 0");
-        return;
+  function startOrder() {
+    const rate = document.getElementById('rate').value;
+    if (!rate || rate <= 0) {
+      alert('Введите ставку');
+      return;
     }
 
-    let income = 0;
-    if (rateType === "fix") income = r;
-    else if (rateType === "km") income = d * r;
-    else income = Math.max(0, h - 1) * HOUR_RATE;
+    startTime = Date.now();
+    document.getElementById('timerBlock').style.display = 'block';
+    document.getElementById('resultBlock').style.display = 'none';
 
-    let fuel100 = BASE_FUEL_100 * tonnageCoef(t);
-    if (refrig) fuel100 *= REF_COEF;
+    interval = setInterval(updateTimer, 1000);
+  }
 
-    let fuelCost = d * fuel100 / 100 * f;
-    let amort = d * AMORT;
-    let gross = income - fuelCost - amort;
-    let tax = gross > 0 ? gross * TAX : 0;
-    let profit = gross - tax;
-    let margin = income > 0 ? profit / income * 100 : 0;
+  function updateTimer() {
+    const diff = Date.now() - startTime;
+    const sec = Math.floor(diff / 1000);
 
-    const text =
-`🚛 РАСЧЁТ РЕЙСА
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
 
-Пробег: ${d} км
-Тоннаж: ${t} т
-Рефрижератор: ${refrig ? "Да" : "Нет"}
+    document.getElementById('timer').textContent =
+      String(h).padStart(2,'0') + ':' +
+      String(m).padStart(2,'0') + ':' +
+      String(s).padStart(2,'0');
+  }
 
-Доход: ${income.toFixed(0)} ₽
-Топливо: -${fuelCost.toFixed(0)} ₽
-Амортизация: -${amort.toFixed(0)} ₽
-Налог: -${tax.toFixed(0)} ₽
+  function finishOrder() {
+    clearInterval(interval);
 
-Чистая прибыль: ${profit.toFixed(0)} ₽
-Маржа: ${margin.toFixed(1)} %
-Расход: ${fuel100.toFixed(1)} л / 100 км`;
+    const rate = Number(document.getElementById('rate').value);
+    const diff = Date.now() - startTime;
+    const minutes = Math.ceil(diff / 60000);
 
-    resultText.textContent = text;
-    report.style.display = "block";
-}
+    let hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    if (rest > 15) hours += 1;
 
-function copy() {
-    navigator.clipboard.writeText(resultText.textContent);
-    alert("Скопировано");
-}
+    const paidHours = Math.max(6, hours);
+    const sum = paidHours * rate;
+
+    document.getElementById('report').textContent =
+`Схема: 5+1
+Фактическое время: ${hours} ч
+Оплачено часов: ${paidHours}
+Ставка: ${rate} ₽ / час
+
+ИТОГО: ${sum} ₽`;
+
+    document.getElementById('resultBlock').style.display = 'block';
+  }
 </script>
 
 </body>
-  </html>
+</html>
