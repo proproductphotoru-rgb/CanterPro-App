@@ -12,6 +12,7 @@ body {
   background: #f4f6f8;
 }
 
+/* HEADER */
 header {
   background: #1976d2;
   color: #fff;
@@ -19,31 +20,21 @@ header {
   text-align: center;
   font-size: 20px;
   font-weight: 600;
-  position: relative;
 }
 
-.settings {
-  position: absolute;
-  right: 16px;
-  top: 14px;
-  font-size: 20px;
-}
-
+/* COMMON */
+.hidden { display: none; }
 .container { padding: 16px; }
-
-.center {
-  text-align: center;
-  margin-top: 80px;
-}
+.center { text-align: center; margin-top: 80px; }
 
 .card {
   background: #fff;
   border-radius: 18px;
   padding: 16px;
-  margin-bottom: 16px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
+/* BUTTONS */
 button {
   width: 100%;
   padding: 16px;
@@ -56,12 +47,9 @@ button {
 .primary { background: #1976d2; color: #fff; }
 .secondary { background: #e0e0e0; color: #333; }
 .danger { background: #d32f2f; color: #fff; }
+.disabled { opacity: .4; pointer-events: none; }
 
-.disabled {
-  opacity: .4;
-  pointer-events: none;
-}
-
+/* TOP TABS */
 .tabs {
   display: flex;
   gap: 8px;
@@ -80,63 +68,104 @@ button {
 .tab.day { background: #2196f3; }
 .tab.orders { background: #4caf50; }
 .tab.expenses { background: #ff9800; }
+.tab.inactive { opacity: .5; }
 
-.tab.inactive {
-  opacity: .5;
+/* WORKDAY LAYOUT */
+.workday-layout {
+  display: flex;
+  gap: 12px;
 }
 
-.hidden { display: none; }
+/* CENTER */
+.workday-center {
+  flex: 1;
+}
+
+/* SIDE PANEL (RIGHT) */
+.side-panel {
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-btn {
+  background: #ddd;
+  border-radius: 14px;
+  padding: 12px 6px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.side-btn.active {
+  background: #1976d2;
+  color: #fff;
+}
 </style>
 </head>
 
 <body>
 
-<header>
-  CanterPro
-  <span id="settingsBtn" class="settings hidden">⚙️</span>
-</header>
+<header>CanterPro</header>
 
 <div class="container">
 
-<!-- СТАРТОВЫЙ ЭКРАН -->
+<!-- START SCREEN -->
 <div id="startScreen" class="center">
   <h2>Доброе утро 👋</h2>
-  <p>Выберите режим работы</p><br>
+  <p>Выберите режим</p><br>
 
   <button class="primary" onclick="startWorkDay()">Начать рабочий день</button>
   <br><br>
   <button class="secondary" onclick="openReportsMode()">Работа с отчетами и аналитикой</button>
 </div>
 
-<!-- ОСНОВНОЙ ЭКРАН -->
+<!-- MAIN SCREEN -->
 <div id="mainScreen" class="hidden">
 
+  <!-- TOP TABS -->
   <div class="tabs">
-    <div class="tab day" onclick="openTab('day', this)">🕘 Рабочий день</div>
-    <div class="tab orders inactive" onclick="openTab('orders', this)">📦 Заказы</div>
-    <div class="tab expenses inactive" onclick="openTab('expenses', this)">💸 Расходы</div>
+    <div class="tab day" onclick="openTopTab('day', this)">🕘 Рабочий день</div>
+    <div class="tab orders inactive" onclick="openTopTab('orders', this)">📦 Заказы</div>
+    <div class="tab expenses inactive" onclick="openTopTab('expenses', this)">💸 Расходы</div>
   </div>
 
-  <!-- РАБОЧИЙ ДЕНЬ -->
+  <!-- WORKDAY TAB -->
   <div id="tab-day">
-    <div class="card">
-      <button id="endDayBtn" class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
-    </div>
 
-    <div class="card">
-      <h3>📊 Отчет за рабочий день</h3>
-      <div id="dayReport"></div>
+    <div class="workday-layout">
+
+      <!-- CENTER -->
+      <div class="workday-center">
+        <div class="card">
+          <button id="endDayBtn" class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h3>📊 Сводка за день</h3>
+          <div id="dayReport"></div>
+        </div>
+      </div>
+
+      <!-- SIDE PANEL -->
+      <div class="side-panel">
+        <div class="side-btn active" onclick="openSide('summary', this)">📊</div>
+        <div class="side-btn" onclick="openSide('warnings', this)">⚠️</div>
+        <div class="side-btn" onclick="openSide('alerts', this)">🔔</div>
+      </div>
+
     </div>
   </div>
 
-  <!-- ЗАКАЗЫ -->
+  <!-- OTHER TABS -->
   <div id="tab-orders" class="hidden">
-    <div class="card">Раздел заказов (следующий шаг)</div>
+    <div class="card">Раздел «Заказы» (следующий шаг)</div>
   </div>
 
-  <!-- РАСХОДЫ -->
   <div id="tab-expenses" class="hidden">
-    <div class="card">Раздел расходов (следующий шаг)</div>
+    <div class="card">Раздел «Расходы» (следующий шаг)</div>
   </div>
 
 </div>
@@ -147,6 +176,10 @@ let workDay = JSON.parse(localStorage.getItem("workDay"));
 let appMode = localStorage.getItem("appMode"); // work | reports
 
 function startWorkDay() {
+  if (workDay && !workDay.closed) {
+    alert("Сначала завершите предыдущий рабочий день");
+    return;
+  }
   workDay = {
     date: new Date().toLocaleDateString(),
     startTime: new Date().toLocaleTimeString(),
@@ -165,13 +198,10 @@ function openReportsMode() {
 }
 
 function endWorkDay() {
-  if (!workDay || workDay.closed) return;
-
   workDay.endTime = new Date().toLocaleTimeString();
   workDay.closed = true;
   save();
 
-  // ⬅️ возврат на главный экран
   appMode = null;
   localStorage.removeItem("appMode");
   render();
@@ -186,40 +216,34 @@ function render() {
   if (!appMode) {
     startScreen.classList.remove("hidden");
     mainScreen.classList.add("hidden");
-    settingsBtn.classList.add("hidden");
     return;
   }
 
   startScreen.classList.add("hidden");
   mainScreen.classList.remove("hidden");
-  settingsBtn.classList.remove("hidden");
 
-  let report = "";
-
-  if (workDay) {
-    report += `<p>📅 <b>Дата:</b> ${workDay.date}</p>`;
-    report += `<p>⏱ <b>Начало:</b> ${workDay.startTime}</p>`;
-    report += `<p>⏹ <b>Окончание:</b> ${workDay.endTime || "—"}</p>`;
-    if (workDay.closed) report += `<p>✅ <b>День завершён</b></p>`;
-  } else {
-    report = "<p>Рабочий день не открыт</p>";
-  }
-
-  dayReport.innerHTML = report;
-
-  if (appMode === "reports") {
-    endDayBtn.classList.add("disabled");
-  } else {
-    endDayBtn.classList.remove("disabled");
-  }
+  let text = `
+    <p>📅 <b>Дата:</b> ${workDay.date}</p>
+    <p>⏱ <b>Начало:</b> ${workDay.startTime}</p>
+    <p>⏹ <b>Окончание:</b> ${workDay.endTime || "—"}</p>
+  `;
+  dayReport.innerHTML = text;
 }
 
-function openTab(name, el) {
+function openTopTab(name, el) {
   document.querySelectorAll(".tab").forEach(t => t.classList.add("inactive"));
   el.classList.remove("inactive");
 
   document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
   document.getElementById("tab-" + name).classList.remove("hidden");
+}
+
+function openSide(section, el) {
+  document.querySelectorAll(".side-btn").forEach(b => b.classList.remove("active"));
+  el.classList.add("active");
+
+  // пока просто заглушка
+  dayReport.innerHTML = `<p>Раздел: <b>${section}</b></p>`;
 }
 
 render();
