@@ -57,7 +57,7 @@ button {
   pointer-events: none;
 }
 
-/* ===== ОРГАНАЙЗЕР-ТАБЫ ===== */
+/* ===== ТАБЫ ===== */
 .tabs {
   display: flex;
   gap: 10px;
@@ -71,7 +71,6 @@ button {
   text-align: center;
   font-weight: 600;
   font-size: 15px;
-  line-height: 1.2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -79,17 +78,12 @@ button {
   opacity: .7;
 }
 
-/* иконка */
-.tab span {
-  font-size: 22px;
-}
+.tab span { font-size: 22px; }
 
-/* цвета вкладок */
 .tab-day { background: #c8e6c9; }
 .tab-orders { background: #bbdefb; }
 .tab-expenses { background: #ffe0b2; }
 
-/* активная вкладка */
 .tab.active {
   opacity: 1;
   transform: translateY(-4px);
@@ -102,6 +96,14 @@ button {
 
 .hidden { display: none; }
 .center { text-align: center; margin-top: 80px; }
+
+.alert {
+  background: #fff3cd;
+  border-left: 6px solid #ff9800;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
 </style>
 </head>
 
@@ -119,7 +121,7 @@ button {
   <h2>Доброе утро 👋</h2>
   <p>Выберите режим работы</p><br>
 
-  <button class="primary" onclick="startWorkDay()">Начать рабочий день</button>
+  <button class="primary" id="startBtn" onclick="startWorkDay()">Начать рабочий день</button>
   <br><br>
   <button class="secondary" onclick="openReportsMode()">Работа с отчетами и аналитикой</button>
 </div>
@@ -129,54 +131,73 @@ button {
 
   <div class="tabs">
     <div class="tab tab-day active" onclick="openTab('day', this)">
-      <span>🕒</span>
-      Рабочий день
+      <span>🕒</span>Рабочий день
     </div>
     <div class="tab tab-orders" onclick="openTab('orders', this)">
-      <span>📦</span>
-      Заказы
+      <span>📦</span>Заказы
     </div>
     <div class="tab tab-expenses" onclick="openTab('expenses', this)">
-      <span>⛽</span>
-      Расходы
+      <span>⛽</span>Расходы
     </div>
   </div>
 
   <!-- РАБОЧИЙ ДЕНЬ -->
   <div id="tab-day">
+
+    <div id="alerts"></div>
+
     <div class="card">
       <button id="endDayBtn" class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
     </div>
 
     <div class="card">
-      <h3>Отчет за рабочий день</h3>
+      <h3>📊 Отчет за рабочий день</h3>
       <div id="dayReport"></div>
     </div>
   </div>
 
   <div id="tab-orders" class="hidden">
-    <div class="card">Раздел заказов (следующий шаг)</div>
+    <div class="card">Раздел заказов — следующий шаг</div>
   </div>
 
   <div id="tab-expenses" class="hidden">
-    <div class="card">Раздел расходов (следующий шаг)</div>
+    <div class="card">Раздел расходов — следующий шаг</div>
   </div>
 
 </div>
 </div>
 
 <script>
-let workDay = JSON.parse(localStorage.getItem("workDay"));
+let shift = JSON.parse(localStorage.getItem("currentShift"));
 let appMode = localStorage.getItem("appMode");
 
 function startWorkDay() {
-  workDay = {
-    date: new Date().toLocaleDateString(),
-    startTime: new Date().toLocaleTimeString(),
-    endTime: null,
+  if (shift && !shift.closed) return;
+
+  const now = new Date();
+  shift = {
+    startTs: now.getTime(),
+    startDate: now.toISOString().slice(0,10),
+    startTime: now.toLocaleTimeString(),
     closed: false
   };
   appMode = "work";
+  save();
+  render();
+}
+
+function endWorkDay() {
+  if (!shift || shift.closed) return;
+
+  shift.endTs = Date.now();
+  shift.endTime = new Date().toLocaleTimeString();
+  shift.closed = true;
+
+  localStorage.setItem("lastShift", JSON.stringify(shift));
+  localStorage.removeItem("currentShift");
+  shift = null;
+
+  appMode = null;
   save();
   render();
 }
@@ -187,22 +208,15 @@ function openReportsMode() {
   render();
 }
 
-function endWorkDay() {
-  if (!workDay || workDay.closed) return;
-  workDay.endTime = new Date().toLocaleTimeString();
-  workDay.closed = true;
-  save();
-  appMode = null;
-  localStorage.setItem("appMode", "");
-  render();
-}
-
 function save() {
-  localStorage.setItem("workDay", JSON.stringify(workDay));
+  localStorage.setItem("currentShift", JSON.stringify(shift));
   localStorage.setItem("appMode", appMode);
 }
 
 function render() {
+  const alertsBox = document.getElementById("alerts");
+  alertsBox.innerHTML = "";
+
   if (!appMode) {
     startScreen.classList.remove("hidden");
     mainScreen.classList.add("hidden");
@@ -214,14 +228,41 @@ function render() {
   mainScreen.classList.remove("hidden");
   settingsBtn.classList.remove("hidden");
 
-  let report = "";
-  if (workDay) {
-    report += `<p><b>Дата:</b> ${workDay.date}</p>`;
-    report += `<p><b>Начало:</b> ${workDay.startTime}</p>`;
-    report += `<p><b>Окончание:</b> ${workDay.endTime || "—"}</p>`;
-    if (workDay.closed) report += `<p><b>Статус:</b> День завершен</p>`;
+  if (shift) {
+    const now = Date.now();
+    const hoursOpen = (now - shift.startTs) / 3600000;
+
+    if (hoursOpen > 18) {
+      alertsBox.innerHTML += `
+        <div class="alert">⚠️ Смена открыта более 18 часов. Проверь, не забыл ли завершить рабочий день.</div>
+      `;
+    }
+
+    const today = new Date().toISOString().slice(0,10);
+    if (shift.startDate !== today) {
+      alertsBox.innerHTML += `
+        <div class="alert">📅 Смена началась ${shift.startDate} и не завершена.</div>
+      `;
+    }
   }
+
+  let report = "";
+  if (shift) {
+    report += `<p>📅 <b>Дата:</b> ${shift.startDate}</p>`;
+    report += `<p>🟢 <b>Начало:</b> ${shift.startTime}</p>`;
+    report += `<p>🔴 <b>Окончание:</b> ${shift.endTime || "—"}</p>`;
+    report += `<p>📌 <b>Статус:</b> ${shift.closed ? "Завершен" : "Активен"}</p>`;
+  } else {
+    report = "<p>Рабочий день не открыт</p>";
+  }
+
   dayReport.innerHTML = report;
+
+  if (shift && shift.closed) {
+    endDayBtn.classList.add("disabled");
+  } else {
+    endDayBtn.classList.remove("disabled");
+  }
 }
 
 function openTab(name, el) {
