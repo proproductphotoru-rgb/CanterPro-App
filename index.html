@@ -54,7 +54,6 @@
     background: #e0e0e0;
   }
 
-  /* ТАБЫ СВЕРХУ */
   .tabs {
     display: flex;
     gap: 8px;
@@ -115,55 +114,38 @@
 <!-- ОСНОВНОЙ ЭКРАН -->
 <div id="mainScreen" class="screen hidden">
 
-  <!-- ТАБЫ -->
   <div class="tabs">
-    <div id="tabWork" class="tab work active" onclick="showTab('work')">
-      Рабочий день
-    </div>
-    <div id="tabOrders" class="tab orders" onclick="showTab('orders')">
-      Заказы
-    </div>
-    <div id="tabCosts" class="tab costs" onclick="showTab('costs')">
-      Расходы за день
-    </div>
+    <div id="tabWork" class="tab work active" onclick="showTab('work')">Рабочий день</div>
+    <div id="tabOrders" class="tab orders" onclick="showTab('orders')">Заказы</div>
+    <div id="tabCosts" class="tab costs" onclick="showTab('costs')">Расходы за день</div>
   </div>
 
-  <!-- РАБОЧИЙ ДЕНЬ -->
   <div id="workTab">
     <div class="card">
       <h3>Рабочий день активен</h3>
       <p class="muted" id="startTimeText"></p>
-      <button class="btn btn-primary" onclick="finishWorkDay()">
-        Завершить рабочий день
-      </button>
+      <button class="btn btn-primary" onclick="finishWorkDay()">Завершить рабочий день</button>
     </div>
 
     <div class="card">
       <h3>Промежуточный отчет</h3>
       <p class="muted">
-        Здесь будет расширенный отчет за день<br>
-        (заказы, расходы, пробег, предупреждения)
+        Здесь будет расширенный отчет за день
       </p>
     </div>
   </div>
 
-  <!-- ЗАКАЗЫ (ПОКА ЗАГЛУШКА) -->
   <div id="ordersTab" class="hidden">
     <div class="card">
       <h3>Заказы</h3>
-      <p class="muted">
-        Вкладка заказов будет добавляться далее
-      </p>
+      <p class="muted">Будет добавлено далее</p>
     </div>
   </div>
 
-  <!-- РАСХОДЫ (ПОКА ЗАГЛУШКА) -->
   <div id="costsTab" class="hidden">
     <div class="card">
       <h3>Расходы за день</h3>
-      <p class="muted">
-        Заправки, вебасто, прочие расходы
-      </p>
+      <p class="muted">Заправки, вебасто и т.д.</p>
     </div>
   </div>
 
@@ -177,7 +159,7 @@ function startWorkDay() {
     status: "open"
   };
   localStorage.setItem("currentShift", JSON.stringify(shift));
-  showMainScreen();
+  showMainScreen(); // ← ВАЖНО: прямой переход
 }
 
 function finishWorkDay() {
@@ -206,31 +188,17 @@ function showMainScreen() {
 }
 
 function showTab(tab) {
-  document.getElementById("workTab").classList.add("hidden");
-  document.getElementById("ordersTab").classList.add("hidden");
-  document.getElementById("costsTab").classList.add("hidden");
+  ["work","orders","costs"].forEach(t => {
+    document.getElementById(t+"Tab").classList.add("hidden");
+    document.getElementById("tab"+t.charAt(0).toUpperCase()+t.slice(1)).classList.remove("active");
+  });
 
-  document.getElementById("tabWork").classList.remove("active");
-  document.getElementById("tabOrders").classList.remove("active");
-  document.getElementById("tabCosts").classList.remove("active");
-
-  if (tab === "work") {
-    document.getElementById("workTab").classList.remove("hidden");
-    document.getElementById("tabWork").classList.add("active");
-  }
-  if (tab === "orders") {
-    document.getElementById("ordersTab").classList.remove("hidden");
-    document.getElementById("tabOrders").classList.add("active");
-  }
-  if (tab === "costs") {
-    document.getElementById("costsTab").classList.remove("hidden");
-    document.getElementById("tabCosts").classList.add("active");
-  }
+  document.getElementById(tab+"Tab").classList.remove("hidden");
+  document.getElementById("tab"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add("active");
 }
 
 window.onload = () => {
-  const shift = localStorage.getItem("currentShift");
-  if (shift) {
+  if (localStorage.getItem("currentShift")) {
     showMainScreen();
   }
 };
