@@ -1,365 +1,199 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
-<title>CanterPro Ultra</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CanterPro</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f8;
+    color: #222;
 }
 
 header {
-  background: #1976d2;
-  color: #fff;
-  padding: 16px;
-  text-align: center;
-  font-size: 18px;
+    background: #1976d2;
+    color: white;
+    padding: 14px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    position: relative;
 }
 
-nav {
-  display: flex;
-  background: #1976d2;
+.settings {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    font-size: 20px;
 }
 
-nav button {
-  flex: 1;
-  border: none;
-  background: none;
-  color: #fff;
-  padding: 14px;
-}
-
-.screen {
-  display: none;
-  padding: 16px;
-}
-
-.screen.active {
-  display: block;
+.container {
+    padding: 16px;
 }
 
 .card {
-  background: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
-.card h3 {
-  margin-top: 0;
+button {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-button.main {
-  width: 100%;
-  padding: 14px;
-  background: #1976d2;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  margin-top: 12px;
-  font-size: 16px;
+.primary {
+    background: #1976d2;
+    color: white;
 }
 
-button.red {
-  background: #c62828;
+.danger {
+    background: #d32f2f;
+    color: white;
 }
 
-button.gray {
-  background: #555;
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
-input, textarea {
-  width: 100%;
-  padding: 14px;
-  margin-top: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
+.tab {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    background: #e0e0e0;
 }
 
-.timer {
-  font-size: 32px;
-  text-align: center;
-  margin: 10px 0;
-}
-
-pre {
-  background: #eee;
-  padding: 12px;
-  white-space: pre-wrap;
-  border-radius: 8px;
+.tab.active {
+    background: #1976d2;
+    color: white;
 }
 
 .hidden {
-  display: none;
+    display: none;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-td, th {
-  border-bottom: 1px solid #ddd;
-  padding: 6px;
+.center {
+    text-align: center;
+    margin-top: 80px;
 }
 </style>
 </head>
 
 <body>
 
-<header>CanterPro Ultra</header>
+<header>
+    CanterPro
+    <span class="settings hidden" id="settingsBtn">⚙️</span>
+</header>
 
-<nav>
-  <button onclick="show('day')">День</button>
-  <button onclick="show('order')">Заказ</button>
-  <button onclick="show('fuel')">Заправка</button>
-  <button onclick="show('settings')">Настройки</button>
-</nav>
+<div class="container">
 
-<!-- ================= РАБОЧИЙ ДЕНЬ ================= -->
-<div id="day" class="screen active">
-  <div class="card">
-    <h3>Рабочий день</h3>
-    <p id="dayInfo">День не начат</p>
-    <button class="main" onclick="startDay()">▶ Начать рабочий день</button>
-  </div>
-</div>
-
-<!-- ================= ЗАКАЗ ================= -->
-<div id="order" class="screen">
-  <h2>Заказ • 5+1</h2>
-
-  <div id="orderLock" class="card">
-    <p>Для начала необходимо открыть рабочий день</p>
-  </div>
-
-  <div id="orderContent" class="hidden">
-
-    <div id="startBlock" class="card">
-      <h3>Ставка</h3>
-      <label>₽ / час</label>
-      <input id="rate" type="number">
-      <button class="main" onclick="startOrder()">▶ Начать заказ</button>
+    <!-- СТАРТОВЫЙ ЭКРАН -->
+    <div id="startScreen" class="center">
+        <h2>Доброе утро 👋</h2>
+        <p>Готов начать рабочий день?</p>
+        <br>
+        <button class="primary" onclick="startWorkDay()">Начать рабочий день</button>
     </div>
 
-    <div id="timerBlock" class="card hidden">
-      <h3>Выполнение</h3>
-      <div id="timer" class="timer">00:00:00</div>
-      <button class="red" onclick="finishOrder()">⏹ Завершить заказ</button>
+    <!-- ОСНОВНОЙ ЭКРАН -->
+    <div id="mainScreen" class="hidden">
+
+        <div class="tabs">
+            <div class="tab active" onclick="openTab('day')">Рабочий день</div>
+            <div class="tab" onclick="openTab('orders')">Заказы</div>
+            <div class="tab" onclick="openTab('expenses')">Расходы за день</div>
+        </div>
+
+        <!-- ВКЛАДКА: РАБОЧИЙ ДЕНЬ -->
+        <div id="tab-day">
+            <div class="card">
+                <button class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
+            </div>
+
+            <div class="card">
+                <h3>Отчет за рабочий день</h3>
+                <div id="dayReport"></div>
+            </div>
+        </div>
+
+        <!-- ЗАГЛУШКИ -->
+        <div id="tab-orders" class="hidden">
+            <div class="card">Заказы будут здесь</div>
+        </div>
+
+        <div id="tab-expenses" class="hidden">
+            <div class="card">Расходы будут здесь</div>
+        </div>
+
     </div>
-
-    <div id="routeBlock" class="card hidden">
-      <h3>Маршрут</h3>
-      <button class="main" onclick="openNavigator()">🗺 Открыть Яндекс Навигатор</button>
-      <label>Километраж (км)</label>
-      <input id="distance" type="number">
-    </div>
-
-    <div id="resultBlock" class="card hidden">
-      <h3>Отчёт</h3>
-      <pre id="report"></pre>
-      <label>Фото ТТН</label>
-      <input id="photos" type="file" accept="image/*" multiple>
-      <button class="gray" onclick="shareReport()">📤 Отправить диспетчеру</button>
-      <button class="main" onclick="newOrder()">➕ Новый заказ</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ================= ЗАПРАВКА ================= -->
-<div id="fuel" class="screen">
-  <h2>Заправка</h2>
-
-  <div id="fuelLock" class="card">
-    <p>Заправка доступна только в рабочий день</p>
-  </div>
-
-  <div id="fuelContent" class="hidden">
-
-    <div class="card">
-      <label>
-        <input type="checkbox" id="isWebasto"> 🔥 Вебасто
-      </label>
-      <label>Литры</label>
-      <input id="fuelLiters" type="number">
-      <label>Цена ₽ / л</label>
-      <input id="fuelPrice" type="number">
-      <button class="main" onclick="addFuel()">➕ Добавить</button>
-    </div>
-
-    <div class="card">
-      <h3>Статистика</h3>
-      <p id="fuelStats"></p>
-    </div>
-
-    <div class="card">
-      <h3>История</h3>
-      <table id="fuelTable"></table>
-    </div>
-
-  </div>
-</div>
-
-<!-- ================= НАСТРОЙКИ ================= -->
-<div id="settings" class="screen">
-  <div class="card">
-    <h3>Настройки</h3>
-    <label>Расход вебасто (л / час)</label>
-    <input id="webastoRate" type="number" step="0.1">
-    <label>Реквизиты для оплаты</label>
-    <textarea id="payDetails" rows="4"></textarea>
-    <button class="main" onclick="saveSettings()">💾 Сохранить</button>
-  </div>
 </div>
 
 <script>
-let dayStarted = localStorage.getItem('dayStarted') === 'true';
-let dayStartTime = localStorage.getItem('dayStartTime');
+let workDay = JSON.parse(localStorage.getItem("workDay"));
 
-let fuels = JSON.parse(localStorage.getItem('fuels') || '[]');
-let settings = JSON.parse(localStorage.getItem('settings') || '{"webastoRate":0.4}');
-
-let orderStart = null;
-let interval = null;
-let lastReport = '';
-
-webastoRate.value = settings.webastoRate;
-payDetails.value = localStorage.getItem('payDetails') || '';
-
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function startWorkDay() {
+    workDay = {
+        date: new Date().toLocaleDateString(),
+        startTime: new Date().toLocaleTimeString(),
+        endTime: null
+    };
+    localStorage.setItem("workDay", JSON.stringify(workDay));
+    render();
 }
 
-function startDay() {
-  dayStarted = true;
-  dayStartTime = new Date().toISOString();
-  localStorage.setItem('dayStarted', 'true');
-  localStorage.setItem('dayStartTime', dayStartTime);
-  updateLocks();
+function endWorkDay() {
+    if (!workDay) return;
+    workDay.endTime = new Date().toLocaleTimeString();
+    localStorage.setItem("workDay", JSON.stringify(workDay));
+    alert("Рабочий день завершен");
+    render();
 }
 
-function updateLocks() {
-  if (dayStarted) {
-    dayInfo.textContent = 'День начат: ' + new Date(dayStartTime).toLocaleTimeString();
-    orderLock.classList.add('hidden');
-    orderContent.classList.remove('hidden');
-    fuelLock.classList.add('hidden');
-    fuelContent.classList.remove('hidden');
-  }
+function render() {
+    if (!workDay) {
+        document.getElementById("startScreen").classList.remove("hidden");
+        document.getElementById("mainScreen").classList.add("hidden");
+        document.getElementById("settingsBtn").classList.add("hidden");
+    } else {
+        document.getElementById("startScreen").classList.add("hidden");
+        document.getElementById("mainScreen").classList.remove("hidden");
+        document.getElementById("settingsBtn").classList.remove("hidden");
+
+        let report = `
+        <p><strong>Дата:</strong> ${workDay.date}</p>
+        <p><strong>Начало:</strong> ${workDay.startTime}</p>
+        <p><strong>Окончание:</strong> ${workDay.endTime ?? "—"}</p>
+        `;
+        document.getElementById("dayReport").innerHTML = report;
+    }
 }
 
-function startOrder() {
-  if (!rate.value) return alert('Введите ставку');
-  orderStart = Date.now();
-  startBlock.classList.add('hidden');
-  timerBlock.classList.remove('hidden');
-  routeBlock.classList.remove('hidden');
-  interval = setInterval(updateTimer, 1000);
+function openTab(name) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
+
+    event.target.classList.add("active");
+    document.getElementById("tab-" + name).classList.remove("hidden");
 }
 
-function updateTimer() {
-  const s = Math.floor((Date.now() - orderStart) / 1000);
-  timer.textContent =
-    String(Math.floor(s / 3600)).padStart(2,'0') + ':' +
-    String(Math.floor(s % 3600 / 60)).padStart(2,'0') + ':' +
-    String(s % 60).padStart(2,'0');
-}
-
-function finishOrder() {
-  clearInterval(interval);
-  const end = new Date();
-  const minutes = Math.ceil((end - orderStart) / 60000);
-
-  let paidHours = 6;
-  if (minutes > 360) {
-    let extra = minutes - 360;
-    let h = Math.floor(extra / 60);
-    if (extra % 60 > 15) h++;
-    paidHours += h;
-  }
-
-  lastReport =
-`Заказ завершён
-Схема: 5+1
-Окончание: ${end.toLocaleTimeString().slice(0,5)}
-К оплате за: ${paidHours} ч
-Итого к оплате: ${paidHours * rate.value} ₽
-
-Реквизиты:
-${payDetails.value || '—'}`;
-
-  report.textContent = lastReport;
-  resultBlock.classList.remove('hidden');
-}
-
-function openNavigator() {
-  location.href = "yandexnavi://build_route_on_map";
-}
-
-function shareReport() {
-  const file = new File([lastReport], 'Отчет.txt', { type: 'text/plain' });
-  navigator.share({ files: [file, ...photos.files] });
-}
-
-function newOrder() {
-  startBlock.classList.remove('hidden');
-  timerBlock.classList.add('hidden');
-  routeBlock.classList.add('hidden');
-  resultBlock.classList.add('hidden');
-  rate.value = '';
-  distance.value = '';
-  photos.value = '';
-}
-
-function addFuel() {
-  fuels.push({
-    date: new Date().toISOString(),
-    liters: Number(fuelLiters.value),
-    price: Number(fuelPrice.value),
-    sum: fuelLiters.value * fuelPrice.value,
-    isWebasto: isWebasto.checked
-  });
-  localStorage.setItem('fuels', JSON.stringify(fuels));
-  fuelLiters.value = '';
-  fuelPrice.value = '';
-  isWebasto.checked = false;
-  renderFuel();
-}
-
-function renderFuel() {
-  let fuelSum = 0, webastoSum = 0;
-  fuels.forEach(f => {
-    if (f.isWebasto) webastoSum += f.sum;
-    else fuelSum += f.sum;
-  });
-  fuelStats.innerHTML = `
-⛽ Топливо: <b>${fuelSum.toFixed(0)} ₽</b><br>
-🔥 Вебасто: <b>${webastoSum.toFixed(0)} ₽</b><br>
-💰 Всего: <b>${(fuelSum + webastoSum).toFixed(0)} ₽</b>`;
-  fuelTable.innerHTML =
-    '<tr><th>Дата</th><th>Тип</th><th>₽</th></tr>';
-  fuels.slice().reverse().forEach(f => {
-    fuelTable.innerHTML += `
-<tr>
-<td>${new Date(f.date).toLocaleDateString()}</td>
-<td>${f.isWebasto ? 'Вебасто' : 'Топливо'}</td>
-<td>${f.sum.toFixed(0)}</td>
-</tr>`;
-  });
-}
-
-updateLocks();
-renderFuel();
+render();
 </script>
 
 </body>
-      </html>
+</html>
