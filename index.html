@@ -8,11 +8,10 @@
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f4f6f8;
 }
 
-/* HEADER */
 header {
   background: #1976d2;
   color: #fff;
@@ -22,10 +21,18 @@ header {
   font-weight: 600;
 }
 
-/* COMMON */
-.hidden { display: none; }
-.container { padding: 16px; }
-.center { text-align: center; margin-top: 80px; }
+.container {
+  padding: 16px;
+}
+
+.hidden {
+  display: none;
+}
+
+.center {
+  text-align: center;
+  margin-top: 80px;
+}
 
 .card {
   background: #fff;
@@ -34,7 +41,15 @@ header {
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
-/* BUTTONS */
+.shift-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.shift-item:last-child {
+  border-bottom: none;
+}
+
 button {
   width: 100%;
   padding: 16px;
@@ -44,61 +59,18 @@ button {
   font-weight: 600;
 }
 
-.primary { background: #1976d2; color: #fff; }
-.secondary { background: #e0e0e0; color: #333; }
-.danger { background: #d32f2f; color: #fff; }
-.disabled { opacity: .4; pointer-events: none; }
-
-/* TOP TABS */
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.tab {
-  flex: 1;
-  padding: 14px;
-  border-radius: 16px;
-  text-align: center;
-  font-weight: 600;
+.primary {
+  background: #1976d2;
   color: #fff;
 }
 
-.tab.day { background: #2196f3; }
-.tab.orders { background: #4caf50; }
-.tab.expenses { background: #ff9800; }
-.tab.inactive { opacity: .5; }
-
-/* WORKDAY LAYOUT */
-.workday-layout {
-  display: flex;
-  gap: 12px;
+.secondary {
+  background: #e0e0e0;
+  color: #333;
 }
 
-/* CENTER */
-.workday-center {
-  flex: 1;
-}
-
-/* SIDE PANEL (RIGHT) */
-.side-panel {
-  width: 64px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.side-btn {
-  background: #ddd;
-  border-radius: 14px;
-  padding: 12px 6px;
-  text-align: center;
-  font-size: 18px;
-}
-
-.side-btn.active {
-  background: #1976d2;
+.danger {
+  background: #d32f2f;
   color: #fff;
 }
 </style>
@@ -110,141 +82,155 @@ button {
 
 <div class="container">
 
-<!-- START SCREEN -->
+<!-- ================== START SCREEN ================== -->
 <div id="startScreen" class="center">
-  <h2>Доброе утро 👋</h2>
-  <p>Выберите режим</p><br>
+  <h2>Добро пожаловать 👋</h2>
+  <p>Выберите действие</p>
+  <br>
 
-  <button class="primary" onclick="startWorkDay()">Начать рабочий день</button>
+  <button class="primary" onclick="startShift()">
+    Начать рабочую смену
+  </button>
+
   <br><br>
-  <button class="secondary" onclick="openReportsMode()">Работа с отчетами и аналитикой</button>
+
+  <button class="secondary" onclick="openReports()">
+    Отчёты и аналитика
+  </button>
 </div>
 
-<!-- MAIN SCREEN -->
-<div id="mainScreen" class="hidden">
+<!-- ================== SHIFT SCREEN ================== -->
+<div id="shiftScreen" class="hidden">
+  <div class="card">
+    <h3>🕘 Рабочая смена</h3>
 
-  <!-- TOP TABS -->
-  <div class="tabs">
-    <div class="tab day" onclick="openTopTab('day', this)">🕘 Рабочий день</div>
-    <div class="tab orders inactive" onclick="openTopTab('orders', this)">📦 Заказы</div>
-    <div class="tab expenses inactive" onclick="openTopTab('expenses', this)">💸 Расходы</div>
+    <div id="shiftInfo"></div>
+
+    <br>
+
+    <button class="danger" onclick="endShift()">
+      Завершить рабочую смену
+    </button>
   </div>
-
-  <!-- WORKDAY TAB -->
-  <div id="tab-day">
-
-    <div class="workday-layout">
-
-      <!-- CENTER -->
-      <div class="workday-center">
-        <div class="card">
-          <button id="endDayBtn" class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
-        </div>
-
-        <div style="height:12px"></div>
-
-        <div class="card">
-          <h3>📊 Сводка за день</h3>
-          <div id="dayReport"></div>
-        </div>
-      </div>
-
-      <!-- SIDE PANEL -->
-      <div class="side-panel">
-        <div class="side-btn active" onclick="openSide('summary', this)">📊</div>
-        <div class="side-btn" onclick="openSide('warnings', this)">⚠️</div>
-        <div class="side-btn" onclick="openSide('alerts', this)">🔔</div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- OTHER TABS -->
-  <div id="tab-orders" class="hidden">
-    <div class="card">Раздел «Заказы» (следующий шаг)</div>
-  </div>
-
-  <div id="tab-expenses" class="hidden">
-    <div class="card">Раздел «Расходы» (следующий шаг)</div>
-  </div>
-
 </div>
+
+<!-- ================== REPORTS SCREEN ================== -->
+<div id="reportsScreen" class="hidden">
+  <div class="card">
+    <h3>📊 Отчёты и аналитика</h3>
+
+    <div id="reportsContent"></div>
+
+    <br>
+
+    <button class="secondary" onclick="goToStart()">
+      На стартовый экран
+    </button>
+  </div>
+</div>
+
 </div>
 
 <script>
-let workDay = JSON.parse(localStorage.getItem("workDay"));
-let appMode = localStorage.getItem("appMode"); // work | reports
+/* ================== STATE ================== */
 
-function startWorkDay() {
-  if (workDay && !workDay.closed) {
-    alert("Сначала завершите предыдущий рабочий день");
+let activeShift = JSON.parse(localStorage.getItem("activeShift"));
+let archiveShifts = JSON.parse(localStorage.getItem("archiveShifts")) || [];
+let appMode = localStorage.getItem("appMode"); // null | reports
+
+/* ================== ACTIONS ================== */
+
+function startShift() {
+  if (activeShift) {
+    alert(
+      "Предыдущая рабочая смена не завершена.\n" +
+      "Завершите её перед началом новой."
+    );
     return;
   }
-  workDay = {
-    date: new Date().toLocaleDateString(),
-    startTime: new Date().toLocaleTimeString(),
+
+  const now = new Date();
+
+  activeShift = {
+    id: Date.now(),
+    startDate: now.toLocaleDateString(),
+    startTime: now.toLocaleTimeString(),
     endTime: null,
-    closed: false
+    status: "active"
   };
-  appMode = "work";
-  save();
+
+  localStorage.setItem("activeShift", JSON.stringify(activeShift));
   render();
 }
 
-function openReportsMode() {
+function endShift() {
+  if (!activeShift) return;
+
+  activeShift.endTime = new Date().toLocaleTimeString();
+  activeShift.status = "finished";
+
+  archiveShifts.push(activeShift);
+  localStorage.setItem("archiveShifts", JSON.stringify(archiveShifts));
+
+  localStorage.removeItem("activeShift");
+  activeShift = null;
+
+  render();
+}
+
+function openReports() {
+  if (activeShift) return; // приоритет рабочей смены
   appMode = "reports";
-  save();
+  localStorage.setItem("appMode", "reports");
   render();
 }
 
-function endWorkDay() {
-  workDay.endTime = new Date().toLocaleTimeString();
-  workDay.closed = true;
-  save();
-
+function goToStart() {
   appMode = null;
   localStorage.removeItem("appMode");
   render();
 }
 
-function save() {
-  localStorage.setItem("workDay", JSON.stringify(workDay));
-  if (appMode) localStorage.setItem("appMode", appMode);
-}
+/* ================== RENDER ================== */
 
 function render() {
-  if (!appMode) {
-    startScreen.classList.remove("hidden");
-    mainScreen.classList.add("hidden");
+  startScreen.classList.add("hidden");
+  shiftScreen.classList.add("hidden");
+  reportsScreen.classList.add("hidden");
+
+  if (activeShift) {
+    shiftScreen.classList.remove("hidden");
+    shiftInfo.innerHTML = `
+      <p>📅 <b>Дата начала:</b> ${activeShift.startDate}</p>
+      <p>⏱ <b>Время начала:</b> ${activeShift.startTime}</p>
+    `;
     return;
   }
 
-  startScreen.classList.add("hidden");
-  mainScreen.classList.remove("hidden");
+  if (appMode === "reports") {
+    reportsScreen.classList.remove("hidden");
 
-  let text = `
-    <p>📅 <b>Дата:</b> ${workDay.date}</p>
-    <p>⏱ <b>Начало:</b> ${workDay.startTime}</p>
-    <p>⏹ <b>Окончание:</b> ${workDay.endTime || "—"}</p>
-  `;
-  dayReport.innerHTML = text;
+    if (archiveShifts.length === 0) {
+      reportsContent.innerHTML = `
+        <p>Архив рабочих смен пуст.</p>
+      `;
+    } else {
+      reportsContent.innerHTML = archiveShifts
+        .map(shift => `
+          <div class="shift-item">
+            <p><b>${shift.startDate}</b></p>
+            <p>${shift.startTime} — ${shift.endTime}</p>
+          </div>
+        `)
+        .join("");
+    }
+    return;
+  }
+
+  startScreen.classList.remove("hidden");
 }
 
-function openTopTab(name, el) {
-  document.querySelectorAll(".tab").forEach(t => t.classList.add("inactive"));
-  el.classList.remove("inactive");
-
-  document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
-  document.getElementById("tab-" + name).classList.remove("hidden");
-}
-
-function openSide(section, el) {
-  document.querySelectorAll(".side-btn").forEach(b => b.classList.remove("active"));
-  el.classList.add("active");
-
-  // пока просто заглушка
-  dayReport.innerHTML = `<p>Раздел: <b>${section}</b></p>`;
-}
+/* ================== INIT ================== */
 
 render();
 </script>
