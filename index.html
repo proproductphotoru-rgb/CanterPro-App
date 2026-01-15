@@ -51,30 +51,54 @@ button {
 .primary { background: #1976d2; color: #fff; }
 .secondary { background: #e0e0e0; color: #333; }
 .danger { background: #d32f2f; color: #fff; }
+
 .disabled {
   opacity: .4;
   pointer-events: none;
 }
 
+/* ===== ОРГАНАЙЗЕР-ТАБЫ ===== */
 .tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .tab {
   flex: 1;
-  padding: 12px;
-  border-radius: 14px;
+  padding: 14px 8px;
+  border-radius: 16px;
   text-align: center;
   font-weight: 600;
-  background: #e0e0e0;
+  font-size: 15px;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: .7;
 }
 
-.tab.active {
-  background: #1976d2;
-  color: #fff;
+/* иконка */
+.tab span {
+  font-size: 22px;
 }
+
+/* цвета вкладок */
+.tab-day { background: #c8e6c9; }
+.tab-orders { background: #bbdefb; }
+.tab-expenses { background: #ffe0b2; }
+
+/* активная вкладка */
+.tab.active {
+  opacity: 1;
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+.tab.active.tab-day { background: #2e7d32; color: #fff; }
+.tab.active.tab-orders { background: #1565c0; color: #fff; }
+.tab.active.tab-expenses { background: #ef6c00; color: #fff; }
 
 .hidden { display: none; }
 .center { text-align: center; margin-top: 80px; }
@@ -104,9 +128,18 @@ button {
 <div id="mainScreen" class="hidden">
 
   <div class="tabs">
-    <div class="tab active" onclick="openTab('day', this)">Рабочий день</div>
-    <div class="tab" onclick="openTab('orders', this)">Заказы</div>
-    <div class="tab" onclick="openTab('expenses', this)">Расходы за день</div>
+    <div class="tab tab-day active" onclick="openTab('day', this)">
+      <span>🕒</span>
+      Рабочий день
+    </div>
+    <div class="tab tab-orders" onclick="openTab('orders', this)">
+      <span>📦</span>
+      Заказы
+    </div>
+    <div class="tab tab-expenses" onclick="openTab('expenses', this)">
+      <span>⛽</span>
+      Расходы
+    </div>
   </div>
 
   <!-- РАБОЧИЙ ДЕНЬ -->
@@ -121,7 +154,6 @@ button {
     </div>
   </div>
 
-  <!-- ЗАГЛУШКИ -->
   <div id="tab-orders" class="hidden">
     <div class="card">Раздел заказов (следующий шаг)</div>
   </div>
@@ -135,7 +167,7 @@ button {
 
 <script>
 let workDay = JSON.parse(localStorage.getItem("workDay"));
-let appMode = localStorage.getItem("appMode"); // work | reports
+let appMode = localStorage.getItem("appMode");
 
 function startWorkDay() {
   workDay = {
@@ -160,6 +192,8 @@ function endWorkDay() {
   workDay.endTime = new Date().toLocaleTimeString();
   workDay.closed = true;
   save();
+  appMode = null;
+  localStorage.setItem("appMode", "");
   render();
 }
 
@@ -181,28 +215,19 @@ function render() {
   settingsBtn.classList.remove("hidden");
 
   let report = "";
-
   if (workDay) {
     report += `<p><b>Дата:</b> ${workDay.date}</p>`;
     report += `<p><b>Начало:</b> ${workDay.startTime}</p>`;
     report += `<p><b>Окончание:</b> ${workDay.endTime || "—"}</p>`;
     if (workDay.closed) report += `<p><b>Статус:</b> День завершен</p>`;
-  } else {
-    report = "<p>Рабочий день не открыт</p>";
   }
-
   dayReport.innerHTML = report;
-
-  if (appMode === "reports" || (workDay && workDay.closed)) {
-    endDayBtn.classList.add("disabled");
-  } else {
-    endDayBtn.classList.remove("disabled");
-  }
 }
 
 function openTab(name, el) {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   el.classList.add("active");
+
   document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
   document.getElementById("tab-" + name).classList.remove("hidden");
 }
