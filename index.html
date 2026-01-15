@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CanterPro</title>
 
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f4f6f8;
 }
 
@@ -57,52 +57,61 @@ button {
   pointer-events: none;
 }
 
-/* ===== ТАБЫ ===== */
+.hidden { display: none; }
+
+.center {
+  text-align: center;
+  margin-top: 80px;
+}
+
+/* Верхние вкладки */
 .tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .tab {
   flex: 1;
-  padding: 14px 8px;
-  border-radius: 16px;
+  padding: 12px;
+  border-radius: 14px;
   text-align: center;
   font-weight: 600;
-  font-size: 15px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  opacity: .7;
+  background: #e0e0e0;
 }
-
-.tab span { font-size: 22px; }
-
-.tab-day { background: #c8e6c9; }
-.tab-orders { background: #bbdefb; }
-.tab-expenses { background: #ffe0b2; }
 
 .tab.active {
-  opacity: 1;
-  transform: translateY(-4px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+  background: #1976d2;
+  color: #fff;
 }
 
-.tab.active.tab-day { background: #2e7d32; color: #fff; }
-.tab.active.tab-orders { background: #1565c0; color: #fff; }
-.tab.active.tab-expenses { background: #ef6c00; color: #fff; }
+/* Боковые вкладки */
+.side-layout {
+  display: flex;
+  gap: 12px;
+}
 
-.hidden { display: none; }
-.center { text-align: center; margin-top: 80px; }
+.side-tabs {
+  width: 90px;
+}
 
-.alert {
-  background: #fff3cd;
-  border-left: 6px solid #ff9800;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 12px;
+.side-tab {
+  background: #e0e0e0;
+  border-radius: 14px;
+  padding: 12px 6px;
+  margin-bottom: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.side-tab.active {
+  background: #1976d2;
+  color: #fff;
+}
+
+.content {
+  flex: 1;
 }
 </style>
 </head>
@@ -111,7 +120,7 @@ button {
 
 <header>
   CanterPro
-  <span class="settings hidden" id="settingsBtn">⚙️</span>
+  <span class="settings">⚙️</span>
 </header>
 
 <div class="container">
@@ -119,158 +128,119 @@ button {
 <!-- СТАРТОВЫЙ ЭКРАН -->
 <div id="startScreen" class="center">
   <h2>Доброе утро 👋</h2>
-  <p>Выберите режим работы</p><br>
-
-  <button class="primary" id="startBtn" onclick="startWorkDay()">Начать рабочий день</button>
-  <br><br>
-  <button class="secondary" onclick="openReportsMode()">Работа с отчетами и аналитикой</button>
+  <p>Выберите режим</p><br>
+  <button class="primary" onclick="startWorkDay()">Начать рабочий день</button><br><br>
+  <button class="secondary" onclick="openReports()">Работа с отчетами и аналитикой</button>
 </div>
 
 <!-- ОСНОВНОЙ ЭКРАН -->
 <div id="mainScreen" class="hidden">
 
+  <!-- ВЕРХНИЕ ВКЛАДКИ -->
   <div class="tabs">
-    <div class="tab tab-day active" onclick="openTab('day', this)">
-      <span>🕒</span>Рабочий день
+    <div class="tab active" onclick="openTopTab('summary', this)">Сводный отчет</div>
+    <div class="tab" onclick="openTopTab('detail', this)">Детальный отчет</div>
+    <div class="tab" onclick="openTopTab('analytics', this)">Аналитика</div>
+  </div>
+
+  <div class="side-layout">
+
+    <!-- БОКОВЫЕ ВКЛАДКИ -->
+    <div class="side-tabs">
+      <div class="side-tab active" onclick="openSideTab('content', this)">📄</div>
+      <div class="side-tab" onclick="openSideTab('warnings', this)">⚠️</div>
+      <div class="side-tab" onclick="openSideTab('notify', this)">🔔</div>
+      <div class="side-tab" onclick="openSideTab('supplies', this)">🧰</div>
     </div>
-    <div class="tab tab-orders" onclick="openTab('orders', this)">
-      <span>📦</span>Заказы
-    </div>
-    <div class="tab tab-expenses" onclick="openTab('expenses', this)">
-      <span>⛽</span>Расходы
+
+    <!-- КОНТЕНТ -->
+    <div class="content">
+
+      <!-- ОСНОВНОЙ КОНТЕНТ -->
+      <div id="side-content">
+        <div id="top-summary" class="card">
+          <h3>📊 Сводный отчет</h3>
+          <p>Неделя / Месяц / Год</p>
+        </div>
+
+        <div id="top-detail" class="card hidden">
+          <h3>📋 Детальный отчет</h3>
+          <p>Последний завершенный рабочий день</p>
+        </div>
+
+        <div id="top-analytics" class="card hidden">
+          <h3>📈 Аналитика</h3>
+          <p>Графики и сравнения (будет позже)</p>
+        </div>
+      </div>
+
+      <!-- ПРЕДУПРЕЖДЕНИЯ -->
+      <div id="side-warnings" class="card hidden">
+        <h3>⚠️ Предупреждения</h3>
+        <p>Нет активных предупреждений</p>
+      </div>
+
+      <!-- УВЕДОМЛЕНИЯ -->
+      <div id="side-notify" class="card hidden">
+        <h3>🔔 Уведомления</h3>
+        <p>Нет новых уведомлений</p>
+      </div>
+
+      <!-- РАСХОДНИКИ -->
+      <div id="side-supplies" class="card hidden">
+        <h3>🧰 Расходники</h3>
+        <p>Масло, фильтры, обслуживание</p>
+      </div>
+
     </div>
   </div>
 
-  <!-- РАБОЧИЙ ДЕНЬ -->
-  <div id="tab-day">
-
-    <div id="alerts"></div>
-
-    <div class="card">
-      <button id="endDayBtn" class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
-    </div>
-
-    <div class="card">
-      <h3>📊 Отчет за рабочий день</h3>
-      <div id="dayReport"></div>
-    </div>
-  </div>
-
-  <div id="tab-orders" class="hidden">
-    <div class="card">Раздел заказов — следующий шаг</div>
-  </div>
-
-  <div id="tab-expenses" class="hidden">
-    <div class="card">Раздел расходов — следующий шаг</div>
-  </div>
+  <br>
+  <button class="secondary" onclick="goHome()">🔙 Вернуться на главный экран</button>
 
 </div>
 </div>
 
 <script>
-let shift = JSON.parse(localStorage.getItem("currentShift"));
-let appMode = localStorage.getItem("appMode");
-
 function startWorkDay() {
-  if (shift && !shift.closed) return;
-
-  const now = new Date();
-  shift = {
-    startTs: now.getTime(),
-    startDate: now.toISOString().slice(0,10),
-    startTime: now.toLocaleTimeString(),
-    closed: false
-  };
-  appMode = "work";
-  save();
+  localStorage.setItem("mode", "work");
   render();
 }
 
-function endWorkDay() {
-  if (!shift || shift.closed) return;
-
-  shift.endTs = Date.now();
-  shift.endTime = new Date().toLocaleTimeString();
-  shift.closed = true;
-
-  localStorage.setItem("lastShift", JSON.stringify(shift));
-  localStorage.removeItem("currentShift");
-  shift = null;
-
-  appMode = null;
-  save();
+function openReports() {
+  localStorage.setItem("mode", "reports");
   render();
 }
 
-function openReportsMode() {
-  appMode = "reports";
-  save();
+function goHome() {
+  localStorage.removeItem("mode");
   render();
-}
-
-function save() {
-  localStorage.setItem("currentShift", JSON.stringify(shift));
-  localStorage.setItem("appMode", appMode);
 }
 
 function render() {
-  const alertsBox = document.getElementById("alerts");
-  alertsBox.innerHTML = "";
-
-  if (!appMode) {
-    startScreen.classList.remove("hidden");
-    mainScreen.classList.add("hidden");
-    settingsBtn.classList.add("hidden");
-    return;
-  }
-
-  startScreen.classList.add("hidden");
-  mainScreen.classList.remove("hidden");
-  settingsBtn.classList.remove("hidden");
-
-  if (shift) {
-    const now = Date.now();
-    const hoursOpen = (now - shift.startTs) / 3600000;
-
-    if (hoursOpen > 18) {
-      alertsBox.innerHTML += `
-        <div class="alert">⚠️ Смена открыта более 18 часов. Проверь, не забыл ли завершить рабочий день.</div>
-      `;
-    }
-
-    const today = new Date().toISOString().slice(0,10);
-    if (shift.startDate !== today) {
-      alertsBox.innerHTML += `
-        <div class="alert">📅 Смена началась ${shift.startDate} и не завершена.</div>
-      `;
-    }
-  }
-
-  let report = "";
-  if (shift) {
-    report += `<p>📅 <b>Дата:</b> ${shift.startDate}</p>`;
-    report += `<p>🟢 <b>Начало:</b> ${shift.startTime}</p>`;
-    report += `<p>🔴 <b>Окончание:</b> ${shift.endTime || "—"}</p>`;
-    report += `<p>📌 <b>Статус:</b> ${shift.closed ? "Завершен" : "Активен"}</p>`;
-  } else {
-    report = "<p>Рабочий день не открыт</p>";
-  }
-
-  dayReport.innerHTML = report;
-
-  if (shift && shift.closed) {
-    endDayBtn.classList.add("disabled");
-  } else {
-    endDayBtn.classList.remove("disabled");
-  }
+  const mode = localStorage.getItem("mode");
+  startScreen.classList.toggle("hidden", !!mode);
+  mainScreen.classList.toggle("hidden", !mode);
 }
 
-function openTab(name, el) {
+function openTopTab(name, el) {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   el.classList.add("active");
 
-  document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
-  document.getElementById("tab-" + name).classList.remove("hidden");
+  ["summary","detail","analytics"].forEach(id => {
+    document.getElementById("top-"+id).classList.add("hidden");
+  });
+  document.getElementById("top-"+name).classList.remove("hidden");
+}
+
+function openSideTab(name, el) {
+  document.querySelectorAll(".side-tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+
+  ["content","warnings","notify","supplies"].forEach(id => {
+    document.getElementById("side-"+id).classList.add("hidden");
+  });
+  document.getElementById("side-"+name).classList.remove("hidden");
 }
 
 render();
