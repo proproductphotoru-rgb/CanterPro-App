@@ -1,254 +1,237 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>CanterPro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>CanterPro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-    }
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f4f7;
+  }
 
-    .screen {
-      padding: 16px;
-    }
+  .hidden {
+    display: none;
+  }
 
-    .hidden {
-      display: none;
-    }
+  .screen {
+    padding: 16px;
+  }
 
-    .btn {
-      padding: 16px;
-      border-radius: 16px;
-      border: none;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-    }
+  .center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+  }
 
-    .btn-primary {
-      background: #1976d2;
-      color: white;
-    }
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
 
-    .btn-danger {
-      background: #d32f2f;
-      color: white;
-    }
+  .btn {
+    padding: 18px;
+    border-radius: 18px;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+  }
 
-    .btn-success {
-      background: #388e3c;
-      color: white;
-    }
+  .btn-primary {
+    background: #1976d2;
+    color: white;
+  }
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+  .btn-secondary {
+    background: #e0e0e0;
+  }
 
-    input {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      border-radius: 12px;
-      border: 1px solid #ccc;
-      margin-top: 8px;
-    }
+  /* ТАБЫ СВЕРХУ */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
 
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+  .tab {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    background: #e0e0e0;
+  }
 
-    .tab {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      border-radius: 12px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+  .tab.active {
+    background: #1976d2;
+    color: white;
+  }
 
-    .tab.active {
-      background: #1976d2;
-      color: white;
-    }
+  .tab.work { background: #c8e6c9; }
+  .tab.orders { background: #bbdefb; }
+  .tab.costs { background: #ffe0b2; }
 
-    .tab.inactive {
-      background: #e0e0e0;
-    }
+  .tab.active.work { background: #388e3c; color: white; }
+  .tab.active.orders { background: #1976d2; color: white; }
+  .tab.active.costs { background: #f57c00; color: white; }
 
-    .timer {
-      font-size: 28px;
-      font-weight: bold;
-      text-align: center;
-      margin: 16px 0;
-    }
+  h2, h3 {
+    margin-top: 0;
+  }
 
-    .report {
-      white-space: pre-line;
-      font-size: 16px;
-    }
-  </style>
+  .muted {
+    color: #666;
+    font-size: 14px;
+  }
+</style>
 </head>
 
 <body>
 
-<!-- ЭКРАН СТАРТА -->
-<div id="startScreen" class="screen">
+<!-- СТАРТОВЫЙ ЭКРАН -->
+<div id="startScreen" class="screen center">
   <div class="card">
     <h2>Доброе утро 👋</h2>
-    <button class="btn btn-primary" onclick="startShift()">Начать рабочий день</button>
+    <p class="muted">Нажмите, чтобы начать рабочий день</p>
+    <button class="btn btn-primary" onclick="startWorkDay()">Начать рабочий день</button>
   </div>
 
   <div class="card">
-    <button class="btn" onclick="openAnalytics()">Работа с отчетами и аналитикой</button>
+    <button class="btn btn-secondary" onclick="openAnalyticsOnly()">
+      Работа с отчетами и аналитикой
+    </button>
   </div>
 </div>
 
 <!-- ОСНОВНОЙ ЭКРАН -->
 <div id="mainScreen" class="screen hidden">
 
+  <!-- ТАБЫ -->
   <div class="tabs">
-    <div class="tab active">Заказы</div>
-    <div class="tab inactive">Рабочий день</div>
-    <div class="tab inactive">Расходы</div>
+    <div id="tabWork" class="tab work active" onclick="showTab('work')">
+      Рабочий день
+    </div>
+    <div id="tabOrders" class="tab orders" onclick="showTab('orders')">
+      Заказы
+    </div>
+    <div id="tabCosts" class="tab costs" onclick="showTab('costs')">
+      Расходы за день
+    </div>
   </div>
 
-  <!-- БЛОК ЗАКАЗА -->
-  <div id="orderCard" class="card">
-
-    <div id="orderSetup">
-      <h3>Новый заказ (5+1)</h3>
-      <label>Ставка ₽/час</label>
-      <input id="rateInput" type="number" placeholder="Например 1000">
-      <button class="btn btn-success" style="margin-top:16px" onclick="startOrder()">Начать заказ</button>
+  <!-- РАБОЧИЙ ДЕНЬ -->
+  <div id="workTab">
+    <div class="card">
+      <h3>Рабочий день активен</h3>
+      <p class="muted" id="startTimeText"></p>
+      <button class="btn btn-primary" onclick="finishWorkDay()">
+        Завершить рабочий день
+      </button>
     </div>
 
-    <div id="orderActive" class="hidden">
-      <div class="timer" id="timer">00:00:00</div>
-      <button class="btn btn-danger" onclick="finishOrder()">Завершить заказ</button>
+    <div class="card">
+      <h3>Промежуточный отчет</h3>
+      <p class="muted">
+        Здесь будет расширенный отчет за день<br>
+        (заказы, расходы, пробег, предупреждения)
+      </p>
     </div>
-
-    <div id="orderReport" class="hidden">
-      <h3>Отчет по заказу</h3>
-      <div id="reportText" class="report"></div>
-      <button class="btn btn-primary" onclick="shareReport()">Отправить диспетчеру</button>
-    </div>
-
   </div>
+
+  <!-- ЗАКАЗЫ (ПОКА ЗАГЛУШКА) -->
+  <div id="ordersTab" class="hidden">
+    <div class="card">
+      <h3>Заказы</h3>
+      <p class="muted">
+        Вкладка заказов будет добавляться далее
+      </p>
+    </div>
+  </div>
+
+  <!-- РАСХОДЫ (ПОКА ЗАГЛУШКА) -->
+  <div id="costsTab" class="hidden">
+    <div class="card">
+      <h3>Расходы за день</h3>
+      <p class="muted">
+        Заправки, вебасто, прочие расходы
+      </p>
+    </div>
+  </div>
+
 </div>
 
 <script>
-let timerInterval = null;
-
-function startShift() {
+function startWorkDay() {
   const shift = {
     startTime: Date.now(),
     date: new Date().toISOString().slice(0,10),
-    orders: [],
     status: "open"
   };
   localStorage.setItem("currentShift", JSON.stringify(shift));
-  showMain();
+  showMainScreen();
 }
 
-function showMain() {
+function finishWorkDay() {
+  const shift = JSON.parse(localStorage.getItem("currentShift"));
+  shift.endTime = Date.now();
+  shift.status = "closed";
+  localStorage.setItem("lastShift", JSON.stringify(shift));
+  localStorage.removeItem("currentShift");
+
+  alert("Рабочий день завершён");
+  location.reload();
+}
+
+function openAnalyticsOnly() {
+  alert("Режим аналитики будет добавлен позже");
+}
+
+function showMainScreen() {
   document.getElementById("startScreen").classList.add("hidden");
   document.getElementById("mainScreen").classList.remove("hidden");
-}
-
-function startOrder() {
-  const rate = Number(document.getElementById("rateInput").value);
-  if (!rate) {
-    alert("Введите ставку");
-    return;
-  }
-
-  const order = {
-    rate,
-    startTime: Date.now()
-  };
-
-  localStorage.setItem("currentOrder", JSON.stringify(order));
-
-  document.getElementById("orderSetup").classList.add("hidden");
-  document.getElementById("orderActive").classList.remove("hidden");
-
-  startTimer();
-}
-
-function startTimer() {
-  const start = JSON.parse(localStorage.getItem("currentOrder")).startTime;
-  timerInterval = setInterval(() => {
-    const diff = Date.now() - start;
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    document.getElementById("timer").innerText =
-      `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-  }, 1000);
-}
-
-function finishOrder() {
-  clearInterval(timerInterval);
-
-  const order = JSON.parse(localStorage.getItem("currentOrder"));
-  order.endTime = Date.now();
-
-  const totalMs = order.endTime - order.startTime;
-  let hours = totalMs / 3600000;
-
-  let roundedHours = Math.floor(hours);
-  if ((hours - roundedHours) * 60 > 15) {
-    roundedHours++;
-  }
-
-  const paidHours = Math.max(6, roundedHours);
-  const total = paidHours * order.rate;
-
-  order.total = total;
-  order.paidHours = paidHours;
 
   const shift = JSON.parse(localStorage.getItem("currentShift"));
-  shift.orders.push(order);
-  localStorage.setItem("currentShift", JSON.stringify(shift));
-  localStorage.removeItem("currentOrder");
-
-  document.getElementById("orderActive").classList.add("hidden");
-  document.getElementById("orderReport").classList.remove("hidden");
-
-  document.getElementById("reportText").innerText =
-`Заказ 5+1
-Ставка: ${order.rate} ₽/час
-Фактическое время: ${hours.toFixed(2)} ч
-К оплате за: ${paidHours} ч
-Итого к оплате: ${total} ₽`;
+  const d = new Date(shift.startTime);
+  document.getElementById("startTimeText").innerText =
+    "Начало: " + d.toLocaleDateString() + " " + d.toLocaleTimeString();
 }
 
-function shareReport() {
-  const text = document.getElementById("reportText").innerText;
-  navigator.share({
-    text
-  });
-}
+function showTab(tab) {
+  document.getElementById("workTab").classList.add("hidden");
+  document.getElementById("ordersTab").classList.add("hidden");
+  document.getElementById("costsTab").classList.add("hidden");
 
-function openAnalytics() {
-  alert("Аналитика будет на следующем шаге");
+  document.getElementById("tabWork").classList.remove("active");
+  document.getElementById("tabOrders").classList.remove("active");
+  document.getElementById("tabCosts").classList.remove("active");
+
+  if (tab === "work") {
+    document.getElementById("workTab").classList.remove("hidden");
+    document.getElementById("tabWork").classList.add("active");
+  }
+  if (tab === "orders") {
+    document.getElementById("ordersTab").classList.remove("hidden");
+    document.getElementById("tabOrders").classList.add("active");
+  }
+  if (tab === "costs") {
+    document.getElementById("costsTab").classList.remove("hidden");
+    document.getElementById("tabCosts").classList.add("active");
+  }
 }
 
 window.onload = () => {
   const shift = localStorage.getItem("currentShift");
   if (shift) {
-    showMain();
+    showMainScreen();
   }
 };
 </script>
