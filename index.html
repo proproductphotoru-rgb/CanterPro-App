@@ -7,189 +7,204 @@
 
 <style>
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #f4f6f8;
-    color: #222;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f4f6f8;
 }
 
 header {
-    background: #1976d2;
-    color: white;
-    padding: 14px;
-    text-align: center;
-    font-size: 20px;
-    font-weight: 600;
-    position: relative;
+  background: #1976d2;
+  color: #fff;
+  padding: 14px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  position: relative;
 }
 
 .settings {
-    position: absolute;
-    right: 16px;
-    top: 14px;
-    font-size: 20px;
+  position: absolute;
+  right: 16px;
+  top: 14px;
+  font-size: 20px;
 }
 
-.container {
-    padding: 16px;
-}
+.container { padding: 16px; }
 
 .card {
-    background: white;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
 button {
-    width: 100%;
-    padding: 16px;
-    border: none;
-    border-radius: 30px;
-    font-size: 18px;
-    font-weight: 600;
-    cursor: pointer;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
-.primary {
-    background: #1976d2;
-    color: white;
-}
-
-.danger {
-    background: #d32f2f;
-    color: white;
+.primary { background: #1976d2; color: #fff; }
+.secondary { background: #e0e0e0; color: #333; }
+.danger { background: #d32f2f; color: #fff; }
+.disabled {
+  opacity: .4;
+  pointer-events: none;
 }
 
 .tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .tab {
-    flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: 600;
-    cursor: pointer;
-    background: #e0e0e0;
+  flex: 1;
+  padding: 12px;
+  border-radius: 14px;
+  text-align: center;
+  font-weight: 600;
+  background: #e0e0e0;
 }
 
 .tab.active {
-    background: #1976d2;
-    color: white;
+  background: #1976d2;
+  color: #fff;
 }
 
-.hidden {
-    display: none;
-}
-
-.center {
-    text-align: center;
-    margin-top: 80px;
-}
+.hidden { display: none; }
+.center { text-align: center; margin-top: 80px; }
 </style>
 </head>
 
 <body>
 
 <header>
-    CanterPro
-    <span class="settings hidden" id="settingsBtn">⚙️</span>
+  CanterPro
+  <span class="settings hidden" id="settingsBtn">⚙️</span>
 </header>
 
 <div class="container">
 
-    <!-- СТАРТОВЫЙ ЭКРАН -->
-    <div id="startScreen" class="center">
-        <h2>Доброе утро 👋</h2>
-        <p>Готов начать рабочий день?</p>
-        <br>
-        <button class="primary" onclick="startWorkDay()">Начать рабочий день</button>
+<!-- СТАРТОВЫЙ ЭКРАН -->
+<div id="startScreen" class="center">
+  <h2>Доброе утро 👋</h2>
+  <p>Выберите режим работы</p><br>
+
+  <button class="primary" onclick="startWorkDay()">Начать рабочий день</button>
+  <br><br>
+  <button class="secondary" onclick="openReportsMode()">Работа с отчетами и аналитикой</button>
+</div>
+
+<!-- ОСНОВНОЙ ЭКРАН -->
+<div id="mainScreen" class="hidden">
+
+  <div class="tabs">
+    <div class="tab active" onclick="openTab('day', this)">Рабочий день</div>
+    <div class="tab" onclick="openTab('orders', this)">Заказы</div>
+    <div class="tab" onclick="openTab('expenses', this)">Расходы за день</div>
+  </div>
+
+  <!-- РАБОЧИЙ ДЕНЬ -->
+  <div id="tab-day">
+    <div class="card">
+      <button id="endDayBtn" class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
     </div>
 
-    <!-- ОСНОВНОЙ ЭКРАН -->
-    <div id="mainScreen" class="hidden">
-
-        <div class="tabs">
-            <div class="tab active" onclick="openTab('day')">Рабочий день</div>
-            <div class="tab" onclick="openTab('orders')">Заказы</div>
-            <div class="tab" onclick="openTab('expenses')">Расходы за день</div>
-        </div>
-
-        <!-- ВКЛАДКА: РАБОЧИЙ ДЕНЬ -->
-        <div id="tab-day">
-            <div class="card">
-                <button class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
-            </div>
-
-            <div class="card">
-                <h3>Отчет за рабочий день</h3>
-                <div id="dayReport"></div>
-            </div>
-        </div>
-
-        <!-- ЗАГЛУШКИ -->
-        <div id="tab-orders" class="hidden">
-            <div class="card">Заказы будут здесь</div>
-        </div>
-
-        <div id="tab-expenses" class="hidden">
-            <div class="card">Расходы будут здесь</div>
-        </div>
-
+    <div class="card">
+      <h3>Отчет за рабочий день</h3>
+      <div id="dayReport"></div>
     </div>
+  </div>
+
+  <!-- ЗАГЛУШКИ -->
+  <div id="tab-orders" class="hidden">
+    <div class="card">Раздел заказов (следующий шаг)</div>
+  </div>
+
+  <div id="tab-expenses" class="hidden">
+    <div class="card">Раздел расходов (следующий шаг)</div>
+  </div>
+
+</div>
 </div>
 
 <script>
 let workDay = JSON.parse(localStorage.getItem("workDay"));
+let appMode = localStorage.getItem("appMode"); // work | reports
 
 function startWorkDay() {
-    workDay = {
-        date: new Date().toLocaleDateString(),
-        startTime: new Date().toLocaleTimeString(),
-        endTime: null
-    };
-    localStorage.setItem("workDay", JSON.stringify(workDay));
-    render();
+  workDay = {
+    date: new Date().toLocaleDateString(),
+    startTime: new Date().toLocaleTimeString(),
+    endTime: null,
+    closed: false
+  };
+  appMode = "work";
+  save();
+  render();
+}
+
+function openReportsMode() {
+  appMode = "reports";
+  save();
+  render();
 }
 
 function endWorkDay() {
-    if (!workDay) return;
-    workDay.endTime = new Date().toLocaleTimeString();
-    localStorage.setItem("workDay", JSON.stringify(workDay));
-    alert("Рабочий день завершен");
-    render();
+  if (!workDay || workDay.closed) return;
+  workDay.endTime = new Date().toLocaleTimeString();
+  workDay.closed = true;
+  save();
+  render();
+}
+
+function save() {
+  localStorage.setItem("workDay", JSON.stringify(workDay));
+  localStorage.setItem("appMode", appMode);
 }
 
 function render() {
-    if (!workDay) {
-        document.getElementById("startScreen").classList.remove("hidden");
-        document.getElementById("mainScreen").classList.add("hidden");
-        document.getElementById("settingsBtn").classList.add("hidden");
-    } else {
-        document.getElementById("startScreen").classList.add("hidden");
-        document.getElementById("mainScreen").classList.remove("hidden");
-        document.getElementById("settingsBtn").classList.remove("hidden");
+  if (!appMode) {
+    startScreen.classList.remove("hidden");
+    mainScreen.classList.add("hidden");
+    settingsBtn.classList.add("hidden");
+    return;
+  }
 
-        let report = `
-        <p><strong>Дата:</strong> ${workDay.date}</p>
-        <p><strong>Начало:</strong> ${workDay.startTime}</p>
-        <p><strong>Окончание:</strong> ${workDay.endTime ?? "—"}</p>
-        `;
-        document.getElementById("dayReport").innerHTML = report;
-    }
+  startScreen.classList.add("hidden");
+  mainScreen.classList.remove("hidden");
+  settingsBtn.classList.remove("hidden");
+
+  let report = "";
+
+  if (workDay) {
+    report += `<p><b>Дата:</b> ${workDay.date}</p>`;
+    report += `<p><b>Начало:</b> ${workDay.startTime}</p>`;
+    report += `<p><b>Окончание:</b> ${workDay.endTime || "—"}</p>`;
+    if (workDay.closed) report += `<p><b>Статус:</b> День завершен</p>`;
+  } else {
+    report = "<p>Рабочий день не открыт</p>";
+  }
+
+  dayReport.innerHTML = report;
+
+  if (appMode === "reports" || (workDay && workDay.closed)) {
+    endDayBtn.classList.add("disabled");
+  } else {
+    endDayBtn.classList.remove("disabled");
+  }
 }
 
-function openTab(name) {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
-
-    event.target.classList.add("active");
-    document.getElementById("tab-" + name).classList.remove("hidden");
+function openTab(name, el) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
+  document.getElementById("tab-" + name).classList.remove("hidden");
 }
 
 render();
