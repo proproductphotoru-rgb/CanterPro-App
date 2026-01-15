@@ -19,14 +19,6 @@ header {
   text-align: center;
   font-size: 20px;
   font-weight: 600;
-  position: relative;
-}
-
-.settings {
-  position: absolute;
-  right: 16px;
-  top: 14px;
-  font-size: 20px;
 }
 
 .container { padding: 16px; }
@@ -36,7 +28,7 @@ header {
   border-radius: 18px;
   padding: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
 }
 
 button {
@@ -51,11 +43,6 @@ button {
 .primary { background: #1976d2; color: #fff; }
 .secondary { background: #e0e0e0; color: #333; }
 .danger { background: #d32f2f; color: #fff; }
-
-.disabled {
-  opacity: .4;
-  pointer-events: none;
-}
 
 .hidden { display: none; }
 
@@ -110,105 +97,113 @@ button {
   color: #fff;
 }
 
-.content {
-  flex: 1;
-}
+.content { flex: 1; }
 </style>
 </head>
 
 <body>
 
-<header>
-  CanterPro
-  <span class="settings">⚙️</span>
-</header>
+<header>CanterPro</header>
 
 <div class="container">
 
-<!-- СТАРТОВЫЙ ЭКРАН -->
+<!-- СТАРТ -->
 <div id="startScreen" class="center">
   <h2>Доброе утро 👋</h2>
   <p>Выберите режим</p><br>
-  <button class="primary" onclick="startWorkDay()">Начать рабочий день</button><br><br>
-  <button class="secondary" onclick="openReports()">Работа с отчетами и аналитикой</button>
+  <button class="primary" onclick="openWorkDay()">Начать рабочий день</button><br><br>
+  <button class="secondary" onclick="openReports()">Отчёты и аналитика</button>
 </div>
 
-<!-- ОСНОВНОЙ ЭКРАН -->
-<div id="mainScreen" class="hidden">
+<!-- РАБОЧИЙ ДЕНЬ -->
+<div id="workScreen" class="hidden">
 
-  <!-- ВЕРХНИЕ ВКЛАДКИ -->
-  <div class="tabs">
-    <div class="tab active" onclick="openTopTab('summary', this)">Сводный отчет</div>
-    <div class="tab" onclick="openTopTab('detail', this)">Детальный отчет</div>
-    <div class="tab" onclick="openTopTab('analytics', this)">Аналитика</div>
+  <div class="card">
+    <button class="danger" onclick="endWorkDay()">Завершить рабочий день</button>
   </div>
 
   <div class="side-layout">
-
-    <!-- БОКОВЫЕ ВКЛАДКИ -->
     <div class="side-tabs">
-      <div class="side-tab active" onclick="openSideTab('content', this)">📄</div>
-      <div class="side-tab" onclick="openSideTab('warnings', this)">⚠️</div>
-      <div class="side-tab" onclick="openSideTab('notify', this)">🔔</div>
-      <div class="side-tab" onclick="openSideTab('supplies', this)">🧰</div>
+      <div class="side-tab active" onclick="openWorkTab('summary', this)">📊</div>
+      <div class="side-tab" onclick="openWorkTab('warnings', this)">⚠️</div>
+      <div class="side-tab" onclick="openWorkTab('notify', this)">🔔</div>
     </div>
 
-    <!-- КОНТЕНТ -->
     <div class="content">
-
-      <!-- ОСНОВНОЙ КОНТЕНТ -->
-      <div id="side-content">
-        <div id="top-summary" class="card">
-          <h3>📊 Сводный отчет</h3>
-          <p>Неделя / Месяц / Год</p>
-        </div>
-
-        <div id="top-detail" class="card hidden">
-          <h3>📋 Детальный отчет</h3>
-          <p>Последний завершенный рабочий день</p>
-        </div>
-
-        <div id="top-analytics" class="card hidden">
-          <h3>📈 Аналитика</h3>
-          <p>Графики и сравнения (будет позже)</p>
-        </div>
+      <div id="work-summary" class="card">
+        <h3>📊 Сводка дня</h3>
+        <p>Промежуточные итоги</p>
       </div>
 
-      <!-- ПРЕДУПРЕЖДЕНИЯ -->
-      <div id="side-warnings" class="card hidden">
+      <div id="work-warnings" class="card hidden">
         <h3>⚠️ Предупреждения</h3>
-        <p>Нет активных предупреждений</p>
+        <p>Нет предупреждений</p>
       </div>
 
-      <!-- УВЕДОМЛЕНИЯ -->
-      <div id="side-notify" class="card hidden">
+      <div id="work-notify" class="card hidden">
         <h3>🔔 Уведомления</h3>
-        <p>Нет новых уведомлений</p>
+        <p>Нет уведомлений</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ОТЧЁТЫ -->
+<div id="reportsScreen" class="hidden">
+
+  <div class="tabs">
+    <div class="tab active" onclick="openReportTab('summary', this)">Сводный</div>
+    <div class="tab" onclick="openReportTab('detail', this)">Детальный</div>
+    <div class="tab" onclick="openReportTab('analytics', this)">Аналитика</div>
+  </div>
+
+  <div class="side-layout">
+    <div class="side-tabs">
+      <div class="side-tab active" onclick="openReportSide('content', this)">📄</div>
+      <div class="side-tab" onclick="openReportSide('warnings', this)">⚠️</div>
+      <div class="side-tab" onclick="openReportSide('notify', this)">🔔</div>
+      <div class="side-tab" onclick="openReportSide('supplies', this)">🧰</div>
+    </div>
+
+    <div class="content">
+      <div id="report-content" class="card">
+        <h3>📄 Отчёт</h3>
+        <p>Данные выбранного периода</p>
       </div>
 
-      <!-- РАСХОДНИКИ -->
-      <div id="side-supplies" class="card hidden">
+      <div id="report-warnings" class="card hidden">
+        <h3>⚠️ Предупреждения</h3>
+      </div>
+
+      <div id="report-notify" class="card hidden">
+        <h3>🔔 Уведомления</h3>
+      </div>
+
+      <div id="report-supplies" class="card hidden">
         <h3>🧰 Расходники</h3>
-        <p>Масло, фильтры, обслуживание</p>
       </div>
-
     </div>
   </div>
 
   <br>
-  <button class="secondary" onclick="goHome()">🔙 Вернуться на главный экран</button>
-
+  <button class="secondary" onclick="goHome()">🔙 На главный экран</button>
 </div>
+
 </div>
 
 <script>
-function startWorkDay() {
+function openWorkDay() {
   localStorage.setItem("mode", "work");
   render();
 }
 
 function openReports() {
   localStorage.setItem("mode", "reports");
+  render();
+}
+
+function endWorkDay() {
+  localStorage.removeItem("mode");
   render();
 }
 
@@ -220,27 +215,31 @@ function goHome() {
 function render() {
   const mode = localStorage.getItem("mode");
   startScreen.classList.toggle("hidden", !!mode);
-  mainScreen.classList.toggle("hidden", !mode);
+  workScreen.classList.toggle("hidden", mode !== "work");
+  reportsScreen.classList.toggle("hidden", mode !== "reports");
 }
 
-function openTopTab(name, el) {
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+function openWorkTab(name, el) {
+  document.querySelectorAll("#workScreen .side-tab").forEach(t => t.classList.remove("active"));
   el.classList.add("active");
-
-  ["summary","detail","analytics"].forEach(id => {
-    document.getElementById("top-"+id).classList.add("hidden");
+  ["summary","warnings","notify"].forEach(id => {
+    document.getElementById("work-"+id).classList.add("hidden");
   });
-  document.getElementById("top-"+name).classList.remove("hidden");
+  document.getElementById("work-"+name).classList.remove("hidden");
 }
 
-function openSideTab(name, el) {
-  document.querySelectorAll(".side-tab").forEach(t => t.classList.remove("active"));
+function openReportTab(name, el) {
+  document.querySelectorAll("#reportsScreen .tab").forEach(t => t.classList.remove("active"));
   el.classList.add("active");
+}
 
+function openReportSide(name, el) {
+  document.querySelectorAll("#reportsScreen .side-tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
   ["content","warnings","notify","supplies"].forEach(id => {
-    document.getElementById("side-"+id).classList.add("hidden");
+    document.getElementById("report-"+id).classList.add("hidden");
   });
-  document.getElementById("side-"+name).classList.remove("hidden");
+  document.getElementById("report-"+name).classList.remove("hidden");
 }
 
 render();
