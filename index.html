@@ -12,7 +12,6 @@ body {
   background: #f4f6f8;
 }
 
-/* ===== HEADER ===== */
 header {
   background: #1e88e5;
   color: #fff;
@@ -22,7 +21,6 @@ header {
   font-weight: 600;
 }
 
-/* ===== COMMON ===== */
 .hidden { display: none; }
 .container { padding: 16px; }
 .center { text-align: center; margin-top: 80px; }
@@ -34,7 +32,6 @@ header {
   box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
-/* ===== BUTTONS ===== */
 button {
   width: 100%;
   padding: 16px;
@@ -48,7 +45,6 @@ button {
 .secondary { background: #e0e0e0; color: #333; }
 .danger { background: #d32f2f; color: #fff; }
 
-/* ===== TABS ===== */
 .tabs {
   display: flex;
   gap: 8px;
@@ -69,7 +65,6 @@ button {
 .tab.expenses { background: #ff9800; }
 .tab.inactive { opacity: .4; }
 
-/* ===== LAYOUT ===== */
 .layout {
   display: flex;
   gap: 12px;
@@ -107,7 +102,7 @@ button {
 
 <div class="container">
 
-<!-- ===== MAIN SCREEN ===== -->
+<!-- ГЛАВНЫЙ ЭКРАН -->
 <div id="homeScreen" class="center">
   <h2>Главный экран</h2>
   <br>
@@ -116,46 +111,27 @@ button {
   <button class="secondary" onclick="openReports()">Отчёты и аналитика</button>
 </div>
 
-<!-- ===== WORK SHIFT ===== -->
+<!-- РАБОЧАЯ СМЕНА -->
 <div id="shiftScreen" class="hidden">
 
-  <!-- TABS -->
   <div class="tabs">
-    <div class="tab shift" onclick="openTab('shift', this)">Рабочая смена</div>
-    <div class="tab orders inactive" onclick="openTab('orders', this)">Заказы</div>
-    <div class="tab expenses inactive" onclick="openTab('expenses', this)">Расходы</div>
+    <div class="tab shift">Рабочая смена</div>
+    <div class="tab orders inactive">Заказы</div>
+    <div class="tab expenses inactive">Расходы</div>
   </div>
 
   <div class="layout">
 
-    <!-- CENTER -->
     <div class="center-zone">
-      <div id="tab-shift" class="card">
+      <div class="card">
         <h3>Рабочая смена</h3>
-        <p>Дата начала: —</p>
-        <p>Время начала: —</p>
+        <p id="shiftDate">Дата начала: —</p>
+        <p id="shiftTime">Время начала: —</p>
         <br>
         <button class="danger" onclick="endShift()">Завершить рабочую смену</button>
       </div>
-
-      <div id="tab-orders" class="card hidden">
-        <h3>Заказы</h3>
-        <p>Тут будут тарифы:</p>
-        <ul>
-          <li>5+1</li>
-          <li>За километраж</li>
-          <li>Фикс + км</li>
-          <li>Фиксированный</li>
-        </ul>
-      </div>
-
-      <div id="tab-expenses" class="card hidden">
-        <h3>Расходы за смену</h3>
-        <p>Топливо, вебасто, масла и т.д.</p>
-      </div>
     </div>
 
-    <!-- SIDE -->
     <div class="side-menu">
       <div class="side-btn active">⚠️</div>
       <div class="side-btn">🔔</div>
@@ -164,7 +140,7 @@ button {
   </div>
 </div>
 
-<!-- ===== REPORTS ===== -->
+<!-- ОТЧЁТЫ -->
 <div id="reportsScreen" class="hidden center">
   <h2>Отчёты и аналитика</h2>
   <br>
@@ -174,20 +150,40 @@ button {
 </div>
 
 <script>
+const SHIFT_KEY = "activeShift";
+
 function startShift() {
-  homeScreen.classList.add("hidden");
-  shiftScreen.classList.remove("hidden");
+  if (localStorage.getItem(SHIFT_KEY)) {
+    alert("Рабочая смена уже активна");
+    return;
+  }
 
   const now = new Date();
-  document.querySelector("#tab-shift p:nth-child(2)").innerText =
-    "Дата начала: " + now.toLocaleDateString();
-  document.querySelector("#tab-shift p:nth-child(3)").innerText =
-    "Время начала: " + now.toLocaleTimeString();
+  const shift = {
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString()
+  };
+
+  localStorage.setItem(SHIFT_KEY, JSON.stringify(shift));
+  showShift();
 }
 
 function endShift() {
+  localStorage.removeItem(SHIFT_KEY);
   shiftScreen.classList.add("hidden");
   homeScreen.classList.remove("hidden");
+}
+
+function showShift() {
+  const shift = JSON.parse(localStorage.getItem(SHIFT_KEY));
+  if (!shift) return;
+
+  homeScreen.classList.add("hidden");
+  reportsScreen.classList.add("hidden");
+  shiftScreen.classList.remove("hidden");
+
+  shiftDate.innerText = "Дата начала: " + shift.date;
+  shiftTime.innerText = "Время начала: " + shift.time;
 }
 
 function openReports() {
@@ -200,13 +196,8 @@ function goHome() {
   homeScreen.classList.remove("hidden");
 }
 
-function openTab(name, el) {
-  document.querySelectorAll(".tab").forEach(t => t.classList.add("inactive"));
-  el.classList.remove("inactive");
-
-  document.querySelectorAll("[id^='tab-']").forEach(t => t.classList.add("hidden"));
-  document.getElementById("tab-" + name).classList.remove("hidden");
-}
+// при загрузке страницы
+showShift();
 </script>
 
 </body>
