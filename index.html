@@ -1,192 +1,185 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DriverShift PWA</title>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Driver Assistant</title>
 <link rel="manifest" href="manifest.json">
-
+<meta name="theme-color" content="#111"/>
 <style>
-body { margin:0; font-family:system-ui; background:#f4f6f8; }
-header { background:#1976d2; color:#fff; padding:14px; text-align:center; font-size:18px; }
-.hidden { display:none }
-.container { padding:16px }
-button { width:100%; padding:14px; border:none; border-radius:14px; font-size:16px; font-weight:600 }
-.primary { background:#1976d2; color:#fff }
-.secondary { background:#e0e0e0 }
-.danger { background:#d32f2f; color:#fff }
-.card { background:#fff; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.08) }
-.tabs { display:flex; gap:8px; margin-bottom:12px }
-.tab { flex:1; padding:10px; text-align:center; border-radius:12px; font-weight:600; background:#ddd }
-.tab.active { background:#1976d2; color:#fff }
-.side { position:fixed; right:8px; top:120px; display:flex; flex-direction:column; gap:8px }
-.side button { width:52px; height:52px; border-radius:14px }
-.calc-btn { position:fixed; bottom:20px; right:20px; width:64px; height:64px; border-radius:50%; font-size:24px }
-input, select { width:100%; padding:10px; border-radius:10px; border:1px solid #ccc; margin-top:6px }
-label { font-weight:600 }
-hr { border:none; border-top:1px solid #ddd; margin:12px 0 }
+body{margin:0;font-family:Arial;background:#111;color:#eee}
+header,footer{padding:10px;background:#1c1c1c;display:flex;gap:10px}
+button{padding:10px 14px;border:0;border-radius:8px;background:#2e2e2e;color:#fff}
+button.primary{background:#4caf50}
+button.warn{background:#e53935}
+button.blue{background:#1e88e5}
+.screen{display:none;padding:15px}
+.screen.active{display:block}
+.card{background:#1e1e1e;padding:12px;border-radius:10px;margin-bottom:10px}
+input,select{width:100%;padding:8px;margin:5px 0;background:#2a2a2a;color:#fff;border:0;border-radius:6px}
+.bad{color:#f44336;font-weight:bold}
+.good{color:#4caf50}
+.mid{color:#ffb300}
+.small{font-size:13px;color:#aaa}
 </style>
 </head>
 
 <body>
 
-<header>DriverShift</header>
+<header>
+  <button onclick="show('home')">🏠</button>
+  <button onclick="show('calculator')" class="blue">🧮 Калькулятор</button>
+</header>
 
-<div class="container">
-
-<!-- MAIN -->
-<div id="mainScreen">
+<!-- ГЛАВНЫЙ ЭКРАН -->
+<div id="home" class="screen active">
   <div class="card">
-    <button class="primary" onclick="startShift()">Начать рабочую смену</button>
+    <button class="primary" onclick="startShift()">▶ Начать рабочую смену</button>
   </div>
   <div class="card">
-    <button class="secondary" onclick="openReports()">Отчёты и аналитика</button>
+    <button onclick="show('reports')">📊 Отчёты и аналитика</button>
   </div>
 </div>
 
-<!-- SHIFT -->
-<div id="shiftScreen" class="hidden">
-
-  <div class="tabs">
-    <div class="tab active" onclick="openTab('shift')">Смена</div>
-    <div class="tab" onclick="openTab('orders')">Заказы</div>
-    <div class="tab" onclick="openTab('expenses')">Расходники</div>
-  </div>
-
-  <div id="tab-shift">
-    <div class="card">
-      <h3>Рабочая смена</h3>
-      <div id="shiftInfo"></div>
-      <button class="danger" onclick="endShift()">Завершить смену</button>
-    </div>
-  </div>
-
-  <div id="tab-orders" class="hidden">
-    <div class="card">
-      <h3>Заказы</h3>
-      <button onclick="newOrder('5+1')">5+1</button><br><br>
-      <button onclick="newOrder('km')">За км</button><br><br>
-      <button onclick="newOrder('fix')">Фикс</button><br><br>
-      <button onclick="newOrder('fix_kad')">Фикс + КАД</button>
-    </div>
-    <div id="ordersList"></div>
-  </div>
-
-  <div id="tab-expenses" class="hidden">
-    <div class="card">
-      <h3>Расходы</h3>
-      <label>Сумма</label>
-      <input id="expSum" type="number">
-      <button onclick="addExpense()">Добавить</button>
-    </div>
-  </div>
-
+<!-- СМЕНА -->
+<div id="shift" class="screen">
+  <h3>Рабочая смена</h3>
+  <div class="card" id="shiftStats"></div>
+  <button onclick="show('orders')">📦 Заказы</button>
+  <button class="warn" onclick="endShift()">⛔ Завершить смену</button>
 </div>
 
-<!-- REPORTS -->
-<div id="reportsScreen" class="hidden">
-  <div class="card">
-    <button onclick="goHome()">← На главный экран</button>
-  </div>
-  <div id="reportsList"></div>
+<!-- ЗАКАЗЫ -->
+<div id="orders" class="screen">
+  <h3>Заказы</h3>
+  <div id="ordersList"></div>
+  <button class="primary" onclick="addOrder()">➕ Добавить заказ</button>
 </div>
 
-<!-- CALCULATOR -->
-<div id="calcModal" class="hidden">
-  <div class="card">
-    <h3>Калькулятор</h3>
+<!-- КАЛЬКУЛЯТОР -->
+<div id="calculator" class="screen">
+  <h3>Калькулятор маршрута</h3>
 
-    <label>Километраж</label>
-    <input id="calcKm" type="number">
+  <label>Километраж</label>
+  <input id="calcKm" type="number">
 
-    <label>Ставка ₽/км</label>
-    <input id="calcRate" type="number" value="70">
+  <label>Время в пути (часы)</label>
+  <input id="calcTime" type="number">
 
-    <label><input type="checkbox" id="calcRef"> Рефрижератор</label><br>
-    <label><input type="checkbox" id="calcWeb"> Вебасто</label>
+  <label><input type="checkbox" id="calcLO"> Ленинградская область</label>
+  <label><input type="checkbox" id="calcRef"> ❄ Рефрижератор</label>
+  <label><input type="checkbox" id="calcWeb"> 🔥 Вебасто</label>
 
-    <hr>
-    <button onclick="calc()">Рассчитать</button>
-    <div id="calcResult"></div>
+  <label>Точек</label>
+  <input id="calcPoints" type="number" value="1">
 
-    <button onclick="closeCalc()">Закрыть</button>
-  </div>
+  <button class="primary" onclick="calc()">Рассчитать</button>
+
+  <div id="calcResult" class="card"></div>
 </div>
 
-<button class="primary calc-btn" onclick="openCalc()">🧮</button>
-
+<!-- ОТЧЁТЫ -->
+<div id="reports" class="screen">
+  <h3>Отчёты и аналитика</h3>
+  <div class="card" id="reportData"></div>
 </div>
+
+<footer class="small">
+  ❌ ПРР водитель не выполняет
+</footer>
 
 <script>
-let data = JSON.parse(localStorage.getItem("app")) || {
-  shift:null, orders:[], expenses:[]
-};
+let state={
+  shift:null,
+  orders:[],
+  fuelPrice:76.04
+}
 
-function save(){ localStorage.setItem("app", JSON.stringify(data)); }
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+}
 
 function startShift(){
-  if(data.shift && !data.shift.closed){ alert("Смена уже активна"); return; }
-  data.shift={ start:Date.now(), closed:false };
-  save(); render();
+  if(state.shift) return
+  state.shift={start:Date.now(),income:0,km:0}
+  updateShift()
+  show('shift')
 }
 
 function endShift(){
-  if(data.orders.some(o=>!o.closed)){ alert("Есть активный заказ"); return; }
-  data.shift.closed=true;
-  save(); goHome();
+  if(state.orders.some(o=>!o.done)) return alert("Есть активный заказ")
+  state.shift=null
+  show('home')
 }
 
-function newOrder(type){
-  data.orders.push({ type, start:Date.now(), closed:false });
-  save(); render();
+function updateShift(){
+  let h=(Date.now()-state.shift.start)/3600000
+  document.getElementById('shiftStats').innerHTML=`
+    Время: ${h.toFixed(1)} ч<br>
+    Доход валовый: ${state.shift.income} ₽
+  `
 }
 
-function openTab(t){
-  document.querySelectorAll(".tab").forEach(e=>e.classList.remove("active"));
-  event.target.classList.add("active");
-  ["shift","orders","expenses"].forEach(id=>{
-    document.getElementById("tab-"+id).classList.add("hidden");
-  });
-  document.getElementById("tab-"+t).classList.remove("hidden");
+function addOrder(){
+  if(state.orders.some(o=>!o.done)) return alert("Только 1 активный заказ")
+  let sum=prompt("Сумма заказа?")
+  if(!sum) return
+  state.orders.push({sum:+sum,done:false})
+  state.shift.income+=+sum
+  renderOrders()
 }
 
-function openCalc(){ document.getElementById("calcModal").classList.remove("hidden"); }
-function closeCalc(){ document.getElementById("calcModal").classList.add("hidden"); }
+function renderOrders(){
+  let el=document.getElementById('ordersList')
+  el.innerHTML=""
+  state.orders.forEach((o,i)=>{
+    let d=document.createElement('div')
+    d.className='card'
+    d.innerHTML=`
+      Заказ #${i+1}<br>
+      Сумма: ${o.sum} ₽<br>
+      Статус: ${o.done?"✅":"⏳"}
+      <br><button onclick="closeOrder(${i})">Завершить</button>
+    `
+    el.appendChild(d)
+  })
+}
+
+function closeOrder(i){
+  state.orders[i].done=true
+  renderOrders()
+}
 
 function calc(){
-  let km=+calcKm.value;
-  let rate=+calcRate.value;
-  let fuel=km*0.12*76.04;
-  let income=km*rate;
-  if(calcRef.checked) fuel*=1.2;
-  let tax=income*0.06;
-  let amort=income*0.2;
-  let clean=income-fuel-tax-amort;
-  calcResult.innerHTML=`Доход: ${income.toFixed(0)}<br>Расход: ${fuel.toFixed(0)}<br>Чистый: ${clean.toFixed(0)}`;
+  let km=+calcKm.value
+  let t=+calcTime.value
+  let lo=calcLO.checked
+  let ref=calcRef.checked
+  let web=calcWeb.checked
+
+  let fuel=km*0.35*state.fuelPrice
+  if(ref) fuel*=1.18
+  if(web) fuel+=t*0.5*state.fuelPrice
+
+  let rate=[60,70,80]
+  let res=""
+  rate.forEach(r=>{
+    let income=km*r
+    let clean=income-fuel-income*0.26
+    let cls=clean<0?"bad":clean<5000?"mid":"good"
+    res+=`<div class="${cls}">
+      ${r} ₽/км → ${income.toFixed(0)} ₽ |
+      чистыми ≈ ${clean.toFixed(0)} ₽
+    </div>`
+  })
+
+  document.getElementById('calcResult').innerHTML=res
 }
 
-function render(){
-  mainScreen.classList.toggle("hidden", !!data.shift && !data.shift.closed);
-  shiftScreen.classList.toggle("hidden", !data.shift || data.shift.closed);
-  if(data.shift){
-    shiftInfo.innerHTML=`Начало: ${new Date(data.shift.start).toLocaleString()}`;
-  }
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.register('sw.js')
 }
-
-function goHome(){
-  mainScreen.classList.remove("hidden");
-  shiftScreen.classList.add("hidden");
-  reportsScreen.classList.add("hidden");
-}
-
-function openReports(){
-  mainScreen.classList.add("hidden");
-  reportsScreen.classList.remove("hidden");
-}
-
-render();
 </script>
-
 </body>
 </html>
