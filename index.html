@@ -2,204 +2,191 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Driver App</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DriverShift PWA</title>
+
+<link rel="manifest" href="manifest.json">
+
 <style>
-body{margin:0;font-family:Arial;background:#0f172a;color:#fff}
-header{background:#020617;padding:12px;display:flex;justify-content:space-between;align-items:center}
-button{padding:10px;border:none;border-radius:8px;font-size:15px}
-.primary{background:#2563eb;color:#fff}
-.secondary{background:#334155;color:#fff}
-.danger{background:#7f1d1d;color:#fff}
-.screen{padding:14px}
-.card{background:#020617;border-radius:10px;padding:12px;margin-top:10px;white-space:pre-line}
-input,select{width:100%;padding:10px;margin-top:6px;border-radius:6px;border:none}
-label{font-size:14px;margin-top:6px;display:block}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center}
-.modal-content{background:#020617;padding:16px;width:95%;max-width:480px;border-radius:12px}
-.hidden{display:none}
-.small{font-size:13px;color:#94a3b8}
-.red{color:#f87171;font-weight:bold}
+body { margin:0; font-family:system-ui; background:#f4f6f8; }
+header { background:#1976d2; color:#fff; padding:14px; text-align:center; font-size:18px; }
+.hidden { display:none }
+.container { padding:16px }
+button { width:100%; padding:14px; border:none; border-radius:14px; font-size:16px; font-weight:600 }
+.primary { background:#1976d2; color:#fff }
+.secondary { background:#e0e0e0 }
+.danger { background:#d32f2f; color:#fff }
+.card { background:#fff; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.08) }
+.tabs { display:flex; gap:8px; margin-bottom:12px }
+.tab { flex:1; padding:10px; text-align:center; border-radius:12px; font-weight:600; background:#ddd }
+.tab.active { background:#1976d2; color:#fff }
+.side { position:fixed; right:8px; top:120px; display:flex; flex-direction:column; gap:8px }
+.side button { width:52px; height:52px; border-radius:14px }
+.calc-btn { position:fixed; bottom:20px; right:20px; width:64px; height:64px; border-radius:50%; font-size:24px }
+input, select { width:100%; padding:10px; border-radius:10px; border:1px solid #ccc; margin-top:6px }
+label { font-weight:600 }
+hr { border:none; border-top:1px solid #ddd; margin:12px 0 }
 </style>
 </head>
+
 <body>
 
-<header>
-  <div>🚚 Driver App</div>
-  <div>
-    <button class="secondary" onclick="openCalc()">🧮</button>
-    <button class="primary" onclick="openOrders()">📦</button>
+<header>DriverShift</header>
+
+<div class="container">
+
+<!-- MAIN -->
+<div id="mainScreen">
+  <div class="card">
+    <button class="primary" onclick="startShift()">Начать рабочую смену</button>
   </div>
-</header>
-
-<div class="screen" id="mainScreen">
-  <h3>Рабочая смена</h3>
-  <div id="shiftStatus" class="card">Смена не начата</div>
-  <button class="primary" onclick="startShift()">▶ Начать смену</button>
-  <button class="danger" onclick="endShift()">⏹ Завершить смену</button>
+  <div class="card">
+    <button class="secondary" onclick="openReports()">Отчёты и аналитика</button>
+  </div>
 </div>
 
-<!-- ЗАКАЗЫ -->
-<div class="modal hidden" id="ordersModal">
-<div class="modal-content">
-<h3>Новый заказ</h3>
+<!-- SHIFT -->
+<div id="shiftScreen" class="hidden">
 
-<label>Тип тарифа</label>
-<select id="orderType">
-<option value="km">За километраж</option>
-<option value="fix">Фикс</option>
-<option value="fix_km">Фикс + км</option>
-<option value="fix_fix">Фикс + фикс (ЛО)</option>
-<option value="5plus1">5 + 1</option>
-</select>
+  <div class="tabs">
+    <div class="tab active" onclick="openTab('shift')">Смена</div>
+    <div class="tab" onclick="openTab('orders')">Заказы</div>
+    <div class="tab" onclick="openTab('expenses')">Расходники</div>
+  </div>
 
-<label>Километраж</label>
-<input id="orderKm" type="number">
+  <div id="tab-shift">
+    <div class="card">
+      <h3>Рабочая смена</h3>
+      <div id="shiftInfo"></div>
+      <button class="danger" onclick="endShift()">Завершить смену</button>
+    </div>
+  </div>
 
-<label>Ставка ₽/км</label>
-<input id="orderRate" type="number" value="70">
+  <div id="tab-orders" class="hidden">
+    <div class="card">
+      <h3>Заказы</h3>
+      <button onclick="newOrder('5+1')">5+1</button><br><br>
+      <button onclick="newOrder('km')">За км</button><br><br>
+      <button onclick="newOrder('fix')">Фикс</button><br><br>
+      <button onclick="newOrder('fix_kad')">Фикс + КАД</button>
+    </div>
+    <div id="ordersList"></div>
+  </div>
 
-<label>Фикс ₽</label>
-<input id="orderFix" type="number">
+  <div id="tab-expenses" class="hidden">
+    <div class="card">
+      <h3>Расходы</h3>
+      <label>Сумма</label>
+      <input id="expSum" type="number">
+      <button onclick="addExpense()">Добавить</button>
+    </div>
+  </div>
 
-<label>Часовая ставка (для 5+1)</label>
-<input id="orderHour" type="number" value="1000">
-
-<label><input type="checkbox" id="orderWebasto"> 🔥 Вебасто</label>
-<label><input type="checkbox" id="orderFridge"> ❄️ Рефрижератор</label>
-
-<div class="red">❗ ПРР водитель НЕ выполняет</div>
-
-<button class="primary" onclick="finishOrder()">✔ Завершить заказ</button>
-<button class="secondary" onclick="closeOrders()">Закрыть</button>
 </div>
+
+<!-- REPORTS -->
+<div id="reportsScreen" class="hidden">
+  <div class="card">
+    <button onclick="goHome()">← На главный экран</button>
+  </div>
+  <div id="reportsList"></div>
 </div>
 
-<!-- КАЛЬКУЛЯТОР -->
-<div class="modal hidden" id="calcModal">
-<div class="modal-content">
-<h3>🧮 Калькулятор</h3>
+<!-- CALCULATOR -->
+<div id="calcModal" class="hidden">
+  <div class="card">
+    <h3>Калькулятор</h3>
 
-<label>Км</label>
-<input id="calcKm" type="number">
+    <label>Километраж</label>
+    <input id="calcKm" type="number">
 
-<label>Ставка ₽/км</label>
-<input id="calcRate" type="number" value="70">
+    <label>Ставка ₽/км</label>
+    <input id="calcRate" type="number" value="70">
 
-<label><input type="checkbox" id="calcWebasto"> 🔥 Вебасто (+15%)</label>
-<label><input type="checkbox" id="calcFridge"> ❄️ Реф (+20%)</label>
+    <label><input type="checkbox" id="calcRef"> Рефрижератор</label><br>
+    <label><input type="checkbox" id="calcWeb"> Вебасто</label>
 
-<div id="calcResult" class="card">Введите данные</div>
+    <hr>
+    <button onclick="calc()">Рассчитать</button>
+    <div id="calcResult"></div>
 
-<button class="primary" onclick="calc()">Посчитать</button>
-<button class="secondary" onclick="copyCalc()">📋 Копировать</button>
-<button class="secondary" onclick="sendTG()">📲 Telegram</button>
-<button class="secondary" onclick="closeCalc()">Закрыть</button>
+    <button onclick="closeCalc()">Закрыть</button>
+  </div>
 </div>
+
+<button class="primary calc-btn" onclick="openCalc()">🧮</button>
+
 </div>
 
 <script>
-let shiftActive=false
-let shiftStart=null
-let totalIncome=0
-let totalKm=0
+let data = JSON.parse(localStorage.getItem("app")) || {
+  shift:null, orders:[], expenses:[]
+};
+
+function save(){ localStorage.setItem("app", JSON.stringify(data)); }
 
 function startShift(){
- if(shiftActive) return
- shiftActive=true
- shiftStart=new Date()
- shiftStatus.textContent=`Смена начата: ${shiftStart.toLocaleString()}`
+  if(data.shift && !data.shift.closed){ alert("Смена уже активна"); return; }
+  data.shift={ start:Date.now(), closed:false };
+  save(); render();
 }
 
 function endShift(){
- if(!shiftActive) return
- const end=new Date()
- const hours=((end-shiftStart)/3600000).toFixed(2)
- const fuel=(totalKm*12/100*76.04).toFixed(0)
- const amort=(totalIncome*0.2).toFixed(0)
- const tax=(totalIncome*0.06).toFixed(0)
- const clean=(totalIncome-fuel-amort-tax).toFixed(0)
-
- shiftStatus.textContent=
-`Смена завершена
-Время: ${hours} ч
-Км: ${totalKm}
-Доход валовый: ${totalIncome} ₽
-Топливо: ${fuel} ₽
-Амортизация: ${amort} ₽
-Налог: ${tax} ₽
-ЧИСТЫЙ ДОХОД: ${clean} ₽`
-
- shiftActive=false
- totalIncome=0
- totalKm=0
+  if(data.orders.some(o=>!o.closed)){ alert("Есть активный заказ"); return; }
+  data.shift.closed=true;
+  save(); goHome();
 }
 
-function openOrders(){ ordersModal.classList.remove("hidden") }
-function closeOrders(){ ordersModal.classList.add("hidden") }
-
-function finishOrder(){
- let sum=0
- const km=+orderKm.value||0
- const rate=+orderRate.value||0
- const fix=+orderFix.value||0
- const hour=+orderHour.value||0
-
- if(orderType.value==="km") sum=km*rate
- if(orderType.value==="fix") sum=fix
- if(orderType.value==="fix_km") sum=fix+km*rate
- if(orderType.value==="fix_fix") sum=fix
- if(orderType.value==="5plus1") sum=hour*6
-
- let coef=1
- if(orderWebasto.checked) coef+=0.15
- if(orderFridge.checked) coef+=0.20
-
- sum=Math.round(sum*coef)
-
- totalIncome+=sum
- totalKm+=km
-
- alert("Заказ завершён: "+sum+" ₽")
- closeOrders()
+function newOrder(type){
+  data.orders.push({ type, start:Date.now(), closed:false });
+  save(); render();
 }
 
-function openCalc(){ calcModal.classList.remove("hidden") }
-function closeCalc(){ calcModal.classList.add("hidden") }
+function openTab(t){
+  document.querySelectorAll(".tab").forEach(e=>e.classList.remove("active"));
+  event.target.classList.add("active");
+  ["shift","orders","expenses"].forEach(id=>{
+    document.getElementById("tab-"+id).classList.add("hidden");
+  });
+  document.getElementById("tab-"+t).classList.remove("hidden");
+}
 
-let calcText=""
+function openCalc(){ document.getElementById("calcModal").classList.remove("hidden"); }
+function closeCalc(){ document.getElementById("calcModal").classList.add("hidden"); }
+
 function calc(){
- const km=+calcKm.value||0
- const rate=+calcRate.value||0
- let sum=km*rate
- let coef=1
- if(calcWebasto.checked) coef+=0.15
- if(calcFridge.checked) coef+=0.20
- sum=Math.round(sum*coef)
-
- calcText=
-`🚚 Коммерческое предложение
-
-Км: ${km}
-Ставка: ${rate} ₽/км
-${calcWebasto.checked?"🔥 Вебасто":""}
-${calcFridge.checked?"❄️ Рефрижератор":""}
-
-ИТОГО: ${sum} ₽
-
-❗ ПРР водитель НЕ выполняет`
-
- calcResult.textContent=calcText
+  let km=+calcKm.value;
+  let rate=+calcRate.value;
+  let fuel=km*0.12*76.04;
+  let income=km*rate;
+  if(calcRef.checked) fuel*=1.2;
+  let tax=income*0.06;
+  let amort=income*0.2;
+  let clean=income-fuel-tax-amort;
+  calcResult.innerHTML=`Доход: ${income.toFixed(0)}<br>Расход: ${fuel.toFixed(0)}<br>Чистый: ${clean.toFixed(0)}`;
 }
 
-function copyCalc(){
- navigator.clipboard.writeText(calcText)
- alert("Скопировано")
+function render(){
+  mainScreen.classList.toggle("hidden", !!data.shift && !data.shift.closed);
+  shiftScreen.classList.toggle("hidden", !data.shift || data.shift.closed);
+  if(data.shift){
+    shiftInfo.innerHTML=`Начало: ${new Date(data.shift.start).toLocaleString()}`;
+  }
 }
 
-function sendTG(){
- window.open("https://t.me/share/url?text="+encodeURIComponent(calcText))
+function goHome(){
+  mainScreen.classList.remove("hidden");
+  shiftScreen.classList.add("hidden");
+  reportsScreen.classList.add("hidden");
 }
+
+function openReports(){
+  mainScreen.classList.add("hidden");
+  reportsScreen.classList.remove("hidden");
+}
+
+render();
 </script>
+
 </body>
 </html>
