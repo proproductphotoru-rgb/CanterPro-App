@@ -3,306 +3,393 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CanterPro</title>
+<title>Рабочая смена водителя</title>
 
 <style>
+* { box-sizing: border-box; }
 body {
   margin:0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  background:#f4f6f8;
+  font-family: Arial, sans-serif;
+  background:#f2f4f7;
+  color:#222;
 }
 header {
   background:#1976d2;
   color:#fff;
   padding:14px;
   text-align:center;
-  font-size:20px;
-  font-weight:600;
-}
-.hidden { display:none }
-.container { padding:16px }
-button {
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:30px;
   font-size:18px;
-  font-weight:600;
-  margin-bottom:12px;
+  font-weight:bold;
 }
-.primary { background:#1976d2; color:#fff }
-.secondary { background:#e0e0e0 }
-.danger { background:#d32f2f; color:#fff }
+.screen { display:none; padding:16px; }
+.screen.active { display:block; }
 
 .card {
   background:#fff;
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:12px;
-  box-shadow:0 4px 10px rgba(0,0,0,.06);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
+
+button {
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
+.primary { background:#1976d2; color:#fff; }
+.secondary { background:#555; color:#fff; }
+.danger { background:#c62828; color:#fff; }
 
 .tabs {
   display:flex;
-  gap:8px;
+  gap:6px;
   margin-bottom:12px;
 }
-.tab {
+.tabs button {
   flex:1;
-  padding:12px;
-  border-radius:16px;
-  text-align:center;
-  font-weight:600;
+  background:#e0e0e0;
+  color:#000;
+}
+.tabs button.active {
+  background:#1976d2;
   color:#fff;
 }
-.tab.active { opacity:1 }
-.tab.inactive { opacity:.5 }
-.tab.shift { background:#2196f3 }
-.tab.orders { background:#4caf50 }
-.tab.exp { background:#ff9800 }
 
-.side {
+input, select {
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:6px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+
+.footer-nav {
   position:fixed;
-  right:8px;
-  top:120px;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid #ccc;
   display:flex;
-  flex-direction:column;
-  gap:8px;
 }
-.side button {
-  width:56px;
-  height:56px;
-  border-radius:14px;
-  font-size:20px;
-  padding:0;
-}
-
-.calc-btn {
-  position:fixed;
-  left:8px;
-  bottom:8px;
-  background:#673ab7;
+.footer-nav button {
+  flex:1;
+  border-radius:0;
+  background:#1976d2;
   color:#fff;
-  width:56px;
-  height:56px;
-  border-radius:50%;
-  font-size:22px;
 }
-.red {
-  color:#d32f2f;
-  font-weight:700;
-}
-.small { font-size:14px; color:#555 }
 </style>
 </head>
-
 <body>
 
-<header>CanterPro</header>
+<header id="header">Главный экран</header>
 
-<!-- ГЛАВНЫЙ ЭКРАН -->
-<div id="screenStart" class="container">
-  <button class="primary" onclick="startShift()">Начать рабочую смену</button>
-  <button class="secondary" onclick="openReports()">Отчёты и аналитика</button>
-</div>
+<div id="main" class="screen active"></div>
+<div id="shift" class="screen"></div>
+<div id="orders" class="screen"></div>
+<div id="calculator" class="screen"></div>
+<div id="reports" class="screen"></div>
+<!-- ===== ГЛАВНЫЙ ЭКРАН ===== -->
+<script>
+document.getElementById("main").innerHTML = `
+  <div class="card">
+    <button class="primary" onclick="startShift()">Начать рабочую смену</button>
+    <button class="secondary" onclick="openReports()">Отчёты и аналитика</button>
+    <button onclick="openCalculator()">Калькулятор</button>
+  </div>
+`;
+</script>
 
-<!-- РАБОЧАЯ СМЕНА -->
-<div id="screenShift" class="container hidden">
-
+<!-- ===== ЭКРАН СМЕНЫ ===== -->
+<script>
+document.getElementById("shift").innerHTML = `
   <div class="tabs">
-    <div class="tab shift active" onclick="openTab('shift')">Рабочая смена</div>
-    <div class="tab orders inactive" onclick="openTab('orders')">Заказы</div>
-    <div class="tab exp inactive" onclick="openTab('exp')">Расходники</div>
+    <button class="active" onclick="openShiftTab('summary')">Рабочая смена</button>
+    <button onclick="openShiftTab('orders')">Заказы</button>
+    <button onclick="openShiftTab('expenses')">Расходники</button>
   </div>
 
-  <!-- СМЕНА -->
-  <div id="tab-shift">
-    <div class="card">
-      <button class="danger" onclick="endShift()">Завершить смену</button>
-      <div id="shiftInfo"></div>
-    </div>
-
-    <div class="card">
-      <h3>Итоги смены</h3>
-      <div id="shiftTotals"></div>
-    </div>
+  <div id="shift-summary" class="card">
+    <h3>Текущая смена</h3>
+    <p id="shift-info"></p>
+    <button class="danger" onclick="endShift()">Завершить смену</button>
   </div>
 
-  <!-- ЗАКАЗЫ -->
-  <div id="tab-orders" class="hidden">
-    <div class="card">
-      <h3>Новый заказ</h3>
-      <button onclick="newOrder('5+1')">5 + 1</button>
-      <button onclick="newOrder('km')">За км</button>
-      <button onclick="newOrder('fixkm')">Фикс + км</button>
-      <button onclick="newOrder('fix')">Фикс</button>
-    </div>
-
-    <div class="card">
-      <h3>Активный заказ</h3>
-      <div id="activeOrder"></div>
-    </div>
+  <div id="shift-orders" class="card" style="display:none">
+    <button onclick="newOrder()">➕ Новый заказ</button>
+    <div id="orders-list"></div>
   </div>
 
-  <!-- РАСХОДЫ -->
-  <div id="tab-exp" class="hidden">
-    <div class="card">
-      <h3>Расходы за смену</h3>
-      <p>Топливо, вебасто, масла — следующий этап</p>
-    </div>
+  <div id="shift-expenses" class="card" style="display:none">
+    <h3>Расходники за смену</h3>
+    <p>(топливо, вебасто, масла)</p>
   </div>
 
-</div>
+  <div class="footer-nav">
+    <button onclick="openCalculator()">Калькулятор</button>
+    <button onclick="goMain()">Главный</button>
+  </div>
+`;
+</script>
 
-<!-- КАЛЬКУЛЯТОР -->
-<div id="screenCalc" class="container hidden">
+<!-- ===== ЭКРАН ЗАКАЗА ===== -->
+<script>
+document.getElementById("orders").innerHTML = `
+  <div class="card">
+    <h3>Новый заказ</h3>
+
+    <label>Тариф</label>
+    <select id="orderType">
+      <option value="km">За км</option>
+      <option value="fix">Фиксированный</option>
+      <option value="fix_km">Фикс + км</option>
+      <option value="5plus1">5+1</option>
+    </select>
+
+    <label>Километраж</label>
+    <input id="orderKm" type="number" placeholder="км">
+
+    <label>Ставка / сумма</label>
+    <input id="orderRate" type="number" placeholder="₽">
+
+    <label>
+      <input type="checkbox" id="orderRef"> Рефрижератор
+    </label>
+    <label>
+      <input type="checkbox" id="orderWebasto"> Вебасто
+    </label>
+
+    <button class="primary" onclick="saveOrder()">Сохранить заказ</button>
+    <button class="secondary" onclick="backToShift()">Назад</button>
+  </div>
+`;
+</script>
+
+<!-- ===== КАЛЬКУЛЯТОР ===== -->
+<script>
+document.getElementById("calculator").innerHTML = `
   <div class="card">
     <h3>Калькулятор маршрута</h3>
 
     <label>Километраж</label>
-    <input id="calcKm" type="number" style="width:100%;padding:10px">
+    <input id="calcKm" type="number">
 
     <label>Время в пути (ч)</label>
-    <input id="calcTime" type="number" style="width:100%;padding:10px">
+    <input id="calcHours" type="number">
 
-    <label><input type="checkbox" id="calcRef"> Рефрижератор (+20%)</label><br>
-    <label><input type="checkbox" id="calcWeb"> Вебасто</label>
+    <label>Стоимость дизеля</label>
+    <input id="calcFuel" type="number" value="76">
 
-    <button class="primary" onclick="calc()">Посчитать</button>
-    <div id="calcResult"></div>
+    <label>
+      <input type="checkbox" id="calcRef"> Рефрижератор (+18%)
+    </label>
+    <label>
+      <input type="checkbox" id="calcWeb"> Вебасто
+    </label>
+
+    <button onclick="calcRoute()">Рассчитать</button>
+    <pre id="calcResult"></pre>
+
+    <button class="secondary" onclick="goBack()">Назад</button>
   </div>
+`;
+</script>
 
-  <button class="secondary" onclick="back()">Назад</button>
-</div>
-
-<button class="calc-btn" onclick="openCalc()">🧮</button>
-
+<!-- ===== ОТЧЁТЫ ===== -->
 <script>
-let shift = JSON.parse(localStorage.getItem('shift'));
-let orders = JSON.parse(localStorage.getItem('orders')) || [];
-let activeOrder = null;
+document.getElementById("reports").innerHTML = `
+  <div class="card">
+    <h3>Отчёты и аналитика</h3>
+    <p>История смен и заказов</p>
+    <button onclick="goMain()">На главный экран</button>
+  </div>
+`;
+</script>
+<script>
+/* ================== СОСТОЯНИЕ ================== */
+let state = {
+  screen: "main",
+  shift: JSON.parse(localStorage.getItem("shift")),
+  orders: JSON.parse(localStorage.getItem("orders")) || []
+};
 
-const FUEL_PRICE = 76.04;
-const расход = 12; // л / 100км
-
-function save() {
-  localStorage.setItem('shift', JSON.stringify(shift));
-  localStorage.setItem('orders', JSON.stringify(orders));
+/* ================== НАВИГАЦИЯ ================== */
+function show(screen) {
+  ["main","shift","orders","calculator","reports"].forEach(id=>{
+    document.getElementById(id).style.display = "none";
+  });
+  document.getElementById(screen).style.display = "block";
+  state.screen = screen;
 }
 
+/* ================== СМЕНА ================== */
 function startShift() {
-  if (shift && shift.active) {
-    alert("Смена уже активна");
+  if (state.shift && state.shift.active) {
+    alert("Рабочая смена уже активна. Сначала завершите её.");
+    show("shift");
+    renderShift();
     return;
   }
-  shift = {
+
+  state.shift = {
     start: new Date().toISOString(),
-    active:true
+    date: new Date().toLocaleDateString(),
+    active: true,
+    end: null,
+    fuelUsed: 0,
+    income: 0,
+    expenses: 0
   };
-  orders = [];
+
   save();
-  render();
+  show("shift");
+  renderShift();
 }
 
 function endShift() {
-  if (activeOrder) {
-    alert("Нельзя закрыть смену с активным заказом");
+  if (state.orders.some(o=>o.active)) {
+    alert("Нельзя закрыть смену — есть активный заказ");
     return;
   }
-  shift.active = false;
+  state.shift.active = false;
+  state.shift.end = new Date().toISOString();
   save();
-  render();
+  show("main");
 }
 
-function newOrder(type) {
-  if (activeOrder) {
-    alert("Завершите текущий заказ");
-    return;
-  }
-  activeOrder = {
-    type,
-    start: new Date().toISOString(),
-    income:0
-  };
-  render();
-}
+function renderShift() {
+  let s = state.shift;
+  let hours = ((Date.now() - new Date(s.start)) / 3600000).toFixed(2);
 
-function finishOrder() {
-  activeOrder.end = new Date().toISOString();
-  orders.push(activeOrder);
-  activeOrder = null;
-  save();
-  render();
-}
-
-function render() {
-  screenStart.classList.toggle('hidden', shift && shift.active);
-  screenShift.classList.toggle('hidden', !(shift && shift.active));
-  screenCalc.classList.add('hidden');
-
-  if (shift && shift.active) {
-    shiftInfo.innerHTML = `
-      <p>Дата начала: ${new Date(shift.start).toLocaleDateString()}</p>
-      <p>Время начала: ${new Date(shift.start).toLocaleTimeString()}</p>
-    `;
-    let total = orders.reduce((s,o)=>s+o.income,0);
-    shiftTotals.innerHTML = `
-      <p>Заказов: ${orders.length}</p>
-      <p><b>Доход валовый:</b> ${total.toFixed(0)} ₽</p>
-    `;
-  }
-
-  activeOrder
-    ? activeOrderEl()
-    : activeOrderDiv("Нет активного заказа");
-}
-
-function activeOrderEl() {
-  activeOrderDiv(`
-    Тип: ${activeOrder.type}<br>
-    Начат: ${new Date(activeOrder.start).toLocaleTimeString()}<br>
-    <button onclick="finishOrder()">Завершить заказ</button>
-    <p class="red">ПРР водитель НЕ выполняет</p>
-  `);
-}
-
-function activeOrderDiv(html) {
-  document.getElementById("activeOrder").innerHTML = html;
-}
-
-function openTab(name) {
-  ['shift','orders','exp'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.add('hidden');
-  });
-  document.getElementById('tab-'+name).classList.remove('hidden');
-}
-
-function openCalc() {
-  screenStart.classList.add('hidden');
-  screenShift.classList.add('hidden');
-  screenCalc.classList.remove('hidden');
-}
-
-function back() {
-  render();
-}
-
-function calc() {
-  let km = +calcKm.value;
-  let fuel = km * расход / 100;
-  let cost = fuel * FUEL_PRICE;
-  let coef = calcRef.checked ? 1.2 : 1;
-  let result = cost * coef;
-
-  calcResult.innerHTML = `
-    <p>Топливо: ${fuel.toFixed(1)} л</p>
-    <p>Стоимость: ${result.toFixed(0)} ₽</p>
-    <p class="small">Без учёта маржи, налогов и амортизации</p>
+  document.getElementById("shift-info").innerHTML = `
+    <p><b>Дата:</b> ${s.date}</p>
+    <p><b>Начало:</b> ${new Date(s.start).toLocaleTimeString()}</p>
+    <p><b>Время в смене:</b> ${hours} ч</p>
+    <p><b>Доход:</b> ${s.income.toFixed(0)} ₽</p>
+    <p><b>Расходы:</b> ${s.expenses.toFixed(0)} ₽</p>
   `;
 }
 
-render();
-</script>
+/* ================== ВКЛАДКИ СМЕНЫ ================== */
+function openShiftTab(tab) {
+  ["summary","orders","expenses"].forEach(t=>{
+    document.getElementById("shift-"+t).style.display = "none";
+  });
+  document.getElementById("shift-"+tab).style.display = "block";
+}
 
-</body>
-</html>
+/* ================== ЗАКАЗЫ ================== */
+function newOrder() {
+  show("orders");
+}
+
+function saveOrder() {
+  let type = orderType.value;
+  let km = Number(orderKm.value);
+  let rate = Number(orderRate.value);
+  let ref = orderRef.checked;
+  let web = orderWebasto.checked;
+
+  let fuel = km * 0.12; // 12 л / 100 км
+  if (ref) fuel *= 1.18;
+  let fuelCost = fuel * 76.04;
+
+  let income = 0;
+  if (type === "km") income = km * rate;
+  if (type === "fix") income = rate;
+  if (type === "fix_km") income = rate + km * rate;
+  if (type === "5plus1") income = rate * 6;
+
+  let order = {
+    id: Date.now(),
+    type,
+    km,
+    rate,
+    ref,
+    web,
+    fuel,
+    fuelCost,
+    income,
+    active: false,
+    paid: false
+  };
+
+  state.orders.push(order);
+  state.shift.income += income;
+  state.shift.expenses += fuelCost;
+
+  save();
+  backToShift();
+}
+
+function backToShift() {
+  show("shift");
+  renderShift();
+}
+
+/* ================== КАЛЬКУЛЯТОР ================== */
+function openCalculator() {
+  show("calculator");
+}
+
+function calcRoute() {
+  let km = Number(calcKm.value);
+  let hours = Number(calcHours.value);
+  let fuelPrice = Number(calcFuel.value);
+  let ref = calcRef.checked;
+  let web = calcWeb.checked;
+
+  let fuel = km * 0.12;
+  if (ref) fuel *= 1.18;
+
+  let fuelCost = fuel * fuelPrice;
+
+  let income70 = km * 70;
+  let income75 = km * 75;
+
+  let amort = income70 * 0.20;
+  let tax = income70 * 0.06;
+
+  let clean = income70 - fuelCost - amort - tax;
+
+  calcResult.innerText = `
+Маршрут: ${km} км
+Время: ${hours} ч
+
+Топливо: ${fuel.toFixed(1)} л
+Стоимость топлива: ${fuelCost.toFixed(0)} ₽
+
+Тариф 70 ₽/км:
+Доход: ${income70} ₽
+Чистый доход: ${clean.toFixed(0)} ₽
+
+Тариф 75 ₽/км:
+Доход: ${income75} ₽
+`;
+}
+
+/* ================== ОТЧЁТЫ ================== */
+function openReports() {
+  show("reports");
+}
+
+/* ================== СОХРАНЕНИЕ ================== */
+function save() {
+  localStorage.setItem("shift", JSON.stringify(state.shift));
+  localStorage.setItem("orders", JSON.stringify(state.orders));
+}
+
+/* ================== СТАРТ ================== */
+if (state.shift && state.shift.active) {
+  show("shift");
+  renderShift();
+} else {
+  show("main");
+}
+</script>
