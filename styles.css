@@ -1,0 +1,130 @@
+:root {
+  --primary: #28A745;
+  --warning: #FFC107;
+  --danger: #DC3545;
+  --bg: #FFFFFF;
+  --text: #212529;
+  --gray: #6C757D;
+  --border: #CED4DA;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h1, h2 {
+  color: var(--primary);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+input[type="number"],
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+#results {
+  margin-top: 24px;
+}
+
+.tariff-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: var(--bg);
+}
+
+.tariff-title {
+  font-weight: bold;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.tariff-cost {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.tariff-margin {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.alert {
+  padding: 12px;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.alert-warning {
+  background-color: #FFF3CD;
+  border: 1px solid #FFEBA7;
+  color: #856404;
+}
+
+.advice-block {
+  background-color: #D4EDDA;
+  border: 1px solid #C3E6CB;
+  color: #155724;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
