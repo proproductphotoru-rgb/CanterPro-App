@@ -2,59 +2,99 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Помощник водителя</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Водитель</title>
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="/styles.css">
-  <meta name="theme-color" content="#28A745">
-  <!-- ДОБАВЛЕНО: Библиотека Eruda для отладки на телефоне -->
-  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <meta name="theme-color" content="#4a90e2">
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Калькулятор тарифов</h1>
-    </header>
-    <main>
-      <form id="calcForm">
-        <label>
-          Километраж (км):
-          <input type="number" id="distance" placeholder="180" required>
-        </label>
-        <label>
-          Время в пути (ч):
-          <input type="number" id="time" placeholder="7" required>
-        </label>
-        <div class="checkbox-group">
-          <label><input type="checkbox" id="city"> Город</label>
-          <label><input type="checkbox" id="region"> Область</label>
-          <label><input type="checkbox" id="refrigerator"> Рефрижератор</label>
-          <label><input type="checkbox" id="webasto"> Вебасто</label>
-        </div>
-        <label>
-          Тип груза:
-          <select id="cargoType">
-            <option value="обычный">Обычный</option>
-            <option value="хрупкий">Хрупкий</option>
-            <option value="опасный">Опасный</option>
-          </select>
-        </label>
-        <label>
-          <input type="checkbox" id="prr"> Клиент обеспечивает ПРР
-        </label>
-        <button type="submit">Прикинуть варианты</button>
-      </form>
+  <div id="app">
+    <!-- Главный экран -->
+    <div id="main-screen" class="screen active">
+      <h1>Добро пожаловать</h1>
+      <button id="start-shift">Начать рабочую смену</button>
+      <button id="open-reports">Отчёты и аналитика</button>
+      <button id="open-calculator">Калькулятор</button>
+    </div>
 
-      <div id="results" style="display:none;">
-        <h2>Результаты расчёта</h2>
-        <div id="tariffCards"></div>
-        <div id="risks" class="alert alert-warning"></div>
-        <div id="advice" class="advice-block"></div>
+    <!-- Контейнер «Рабочая смена» -->
+    <div id="shift-container" class="screen">
+      <header>
+        <h2>Рабочая смена</h2>
+        <button id="close-shift">Закрыть смену</button>
+      </header>
+      <nav class="tabs">
+        <button data-tab="shift">Смена</button>
+        <button data-tab="orders">Заказы</button>
+        <button data-tab="expenses">Расходники</button>
+      </nav>
+      <div class="tab-content">
+        <div id="tab-shift" class="tab-pane">
+          <!-- Вкладка «Смена» -->
+        </div>
+        <div id="tab-orders" class="tab-pane">
+          <!-- Вкладка «Заказы» -->
+        </div>
+        <div id="tab-expenses" class="tab-pane">
+          <!-- Вкладка «Расходники» -->
+        </div>
       </div>
-    </main>
+      <aside class="sidebar">
+        <div id="warnings">Предупреждения</div>
+        <div id="notifications">Уведомления</div>
+      </aside>
+    </div>
+
+    <!-- Контейнер «Отчёты и аналитика» -->
+    <div id="reports-container" class="screen">
+      <header>
+        <h2>Отчёты и аналитика</h2>
+        <button id="back-to-main">Назад на главный экран</button>
+      </header>
+      <nav class="tabs">
+        <button data-tab="daily">За день</button>
+        <button data-tab="period">За период</button>
+        <button data-tab="analytics">Аналитика</button>
+      </nav>
+      <div class="tab-content">
+        <div id="tab-daily" class="tab-pane">...</div>
+        <div id="tab-period" class="tab-pane">...</div>
+        <div id="tab-analytics" class="tab-pane">...</div>
+      </div>
+      <aside class="sidebar">
+        <div id="report-warnings">Отчёты по предупреждениям</div>
+        <div id="report-notifications">Отчёты по уведомлениям</div>
+        <div id="report-expenses">Отчёты по расходникам</div>
+      </aside>
+    </div>
   </div>
-  <script src="/app.js"></script>
-  <!-- ДОБАВЛЕНО: Инициализация Eruda -->
-  <script>eruda.init();</script>
+
+  <!-- Модальный калькулятор -->
+  <div id="calculator-modal" class="modal">
+    <div class="modal-content">
+      <h3>Калькулятор</h3>
+      <!-- Поля ввода: км, время, тариф, реф, вебасто -->
+      <form id="calculator-form">
+        <input type="number" name="km" placeholder="Км">
+        <input type="number" name="time" placeholder="Время (ч)">
+        <select name="tariff">
+          <option value="5+1">5+1</option>
+          <option value="per-km">За км</option>
+          <option value="fixed">Фикс</option>
+          <option value="fixed+km">Фикс + км</option>
+        </select>
+        <label><input type="checkbox" name="ref"> Реф</label>
+        <label><input type="checkbox" name="webasto"> Вебасто</label>
+      </form>
+      <div id="calculator-result">
+        <p>Для клиента: <span id="client-price"></span></p>
+        <p>Для вас: <span id="driver-price"></span></p>
+        <p id="recommendation"></p>
+      </div>
+      <button id="close-calculator">Закрыть</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
